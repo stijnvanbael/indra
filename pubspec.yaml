@@ -1,0 +1,8 @@
+name: indra
+version: 0.0.1
+description: Hackable integration and automation engine
+
+dependencies:
+  shelf: ^0.6.8
+  yaml: ^2.1.12
+  meta: ^1.1.1
