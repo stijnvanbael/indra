@@ -35,7 +35,7 @@ class Daemon {
     return matcher<Request, Future<Response>>()
         .when2(matchRequest('GET', '/jobs/:name/:number/output'), (headers, body) async => _output(headers['name'], headers['number']))
         .when2(matchRequest('GET', '/jobs'), (headers, body) async => _jobs())
-        .when2(matchRequest('POST', '/jobs/:name/schedule'), (headers, body) async => _schedule(headers['name'], JSON.decode(body)))
+        .when2(matchRequest('POST', '/jobs/:name/schedule'), (headers, body) async => _schedule(headers['name'], _isNotEmpty(body) ? JSON.decode(body) : {}))
         .when2(matchRequest('DELETE', '/jobs/:name/:number'), (headers, body) async => _cancel(headers['name'], headers['number']))
         .otherwise((r) async => new Response.notFound('Not found'))
         .apply(request);
@@ -83,4 +83,6 @@ class Daemon {
     pathParams.forEach((k, v) => headers[k] = v);
     return headers;
   }
+
+  _isNotEmpty(object) => object != null && object != '';
 }
