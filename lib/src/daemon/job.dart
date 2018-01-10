@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:indra/src/daemon/script.dart';
 import 'package:indra/src/runner.dart';
 import 'package:meta/meta.dart';
 
 class Job {
-  final Function function;
-  final String name;
+  final Script script;
+  final List arguments;
   final int number;
   DateTime startTimestamp;
 
@@ -14,8 +15,8 @@ class Job {
   StringBuffer output = new StringBuffer();
 
   Job({
-    @required this.function,
-    @required this.name,
+    @required this.script,
+    @required this.arguments,
     @required this.number,
   });
 
@@ -23,7 +24,7 @@ class Job {
     status = JobStatus.running;
     startTimestamp = new DateTime.now();
     control.output.listen(output.write);
-    var result = await function(control);
+    var result = await script.function(control, arguments);
     if(!control.failed) {
       status = JobStatus.completed;
     } else {
@@ -32,11 +33,13 @@ class Job {
     return result;
   }
 
+  String get name => script.name;
+
   @override
-  String toString() => '$name#$number';
+  String toString() => '${script.name}#$number';
 
   Map toJson() => {
-        'name': name,
+        'name': script.name,
         'number': number,
         'status': status.toString().substring('JobStatus.'.length),
         'startTimestamp': startTimestamp?.toIso8601String(),

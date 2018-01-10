@@ -17,6 +17,6 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
     }
     params[keyValue[0]] = keyValue[1];
   });
-  Context.changeDir('jobs');
+  Context.changeDir('scripts');
   return params;
 }

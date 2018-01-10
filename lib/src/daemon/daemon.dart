@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:indra/src/daemon/script.dart';
 import 'package:indra/src/daemon/worker_pool.dart';
-import 'package:indra/src/runner.dart';
 import 'package:indra/src/util/pattern_matcher.dart';
 import 'package:indra/src/util/string_pattern.dart';
 import 'package:shelf/shelf.dart';
@@ -19,14 +19,16 @@ class Daemon {
   static final utf8Encoding = 'UTF-8';
 
   WorkerPool _workerPool;
+  ScriptRepository _scriptRepository;
   String host = '0.0.0.0';
   int port = 8080;
   int numberOfWorkers = 1;
-  String workingDir = '${Directory.current.path}/jobs';
+  String workingDir = '${Directory.current.path}/scripts';
 
   Future run() async {
     var handler = const Pipeline().addMiddleware(logRequests()).addHandler(_handleRequest);
     _workerPool = new WorkerPool(numberOfWorkers, workingDir: workingDir);
+    _scriptRepository = new ScriptRepository(workingDir);
     await serve(handler, host, port);
     print('Indra daemon started');
   }
@@ -41,9 +43,10 @@ class Daemon {
         .apply(request);
   }
 
-  Response _schedule(String jobName, Map<String, String> arguments) {
+  Response _schedule(String scriptName, Map<String, String> arguments) {
     var argumentsAsList = arguments.keys.map((k) => '$k=${arguments[k]}').toList();
-    _workerPool.schedule((RunnerControl control) => runScript('$workingDir/$jobName.dart', argumentsAsList, control), jobName: jobName);
+    var script = _scriptRepository.getScript(scriptName);
+    _workerPool.schedule(script, argumentsAsList);
     return new Response.ok('OK');
   }
 

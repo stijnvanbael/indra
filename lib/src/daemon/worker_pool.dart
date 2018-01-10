@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:indra/src/daemon/job.dart';
+import 'package:indra/src/daemon/script.dart';
 import 'package:indra/src/daemon/worker.dart';
 import 'package:indra/src/runner.dart';
 import 'package:meta/meta.dart';
@@ -18,11 +17,11 @@ class WorkerPool {
     }
   }
 
-  void schedule(Future function(RunnerControl), {@required String jobName}) {
+  void schedule(Script script, List arguments) {
     var job = new Job(
-      function: function,
-      name: jobName,
-      number: _nextNumber(jobName),
+      script: script,
+      arguments: arguments,
+      number: _nextNumber(script.name),
     );
     _jobs[job.toString()] = job;
     if (idleWorkers.isEmpty) {
