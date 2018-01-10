@@ -1,12 +1,12 @@
 Indra, continuous integration and automation tool
 =================================================
 
-Indra allows you to define continuous integration and automation jobs as Dart code.
-Jobs can be ran from an IDE and debugged.
+Indra allows you to define continuous integration and automation scripts as Dart code.
+Scripts can be ran from an IDE and debugged.
 Indra runs as a command line tool or as a daemon with a JSON API.
 Indra has a user interface that interacts with the daemon.
 
-**Example build: reflective.dart**
+**Example script: reflective.dart**
 
 ```dart
 import 'dart:isolate';
@@ -26,7 +26,7 @@ main(List<String> args, SendPort outputPort) async {
 }
 ```
 
-You can either run this job directly by running `dart reflective.dart` from a Dart project that declares `indra` as a dependency in `pubspec.yaml`.
+You can either run this script directly by running `dart reflective.dart` from a Dart project that declares `indra` as a dependency in `pubspec.yaml`.
 Or you can run it from the daemon.
-To do so, `reflective.dart` must be placed in the `jobs/` folder relative to the path where you've checked out Indra.
+To do so, `reflective.dart` must be placed in the `scripts/` folder relative to the path where you've checked out Indra.
 Run `dart bin/daemon.dart` and call `POST /jobs/reflective/schedule` on `localhost:8080`.
