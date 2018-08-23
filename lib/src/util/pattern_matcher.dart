@@ -2,38 +2,87 @@ import 'dart:async';
 
 PatternMatcher<I, O> matcher<I, O>() => new PatternMatcher([]);
 
-TransformingPredicate<I, T> predicate<I, T>(bool predicate(I input), [T transformer(I input) = identity]) =>
+AsyncPatternMatcher<I, O> asyncMatcher<I, O>() => new AsyncPatternMatcher([]);
+
+TransformingPredicate<I, T> predicate<I, T>(bool predicate(I input),
+        [T transformer(I input) = identity]) =>
     new TransformingPredicate<I, T>(predicate, transformer);
 
-identity<T>(input) => input as T;
+T identity<T>(input) => input as T;
 
 class PatternMatcher<I, O> implements Function {
   List<_Case> _cases;
 
   PatternMatcher(this._cases);
 
-  PatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) => when(new TransformingPredicate<I, T>((i) => i?.runtimeType == type, identity), function);
+  PatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) => when(
+      new TransformingPredicate<I, T>((i) => i?.runtimeType == type, identity),
+      function);
 
-  PatternMatcher<I, O> when<T>(TransformingPredicate<I, T> predicate, O function(T input)) {
-    var newCases = new List.from(_cases);
+  PatternMatcher<I, O> when<T>(
+      TransformingPredicate<I, T> predicate, O function(T input)) {
+    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
     newCases.add(new _Case(predicate, function));
     return new PatternMatcher(newCases);
   }
 
-  PatternMatcher<I, O> when2<T1, T2>(TransformingPredicate<I, Pair<T1, T2>> predicate, O function(T1 input1, T2 input2)) {
-    var newCases = new List.from(_cases);
-    newCases.add(new _Case(predicate, (p) async {
-      p = await p;
-      return function(p.a, p.b);
-    }));
+  PatternMatcher<I, O> when2<T1, T2>(
+      TransformingPredicate<I, Pair<T1, T2>> predicate,
+      O function(T1 input1, T2 input2)) {
+    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
+    newCases.add(new _Case(predicate, (p) => function(p.a, p.b)));
     return new PatternMatcher(newCases);
   }
 
-  PatternMatcher<I, O> otherwise(O function(I input)) => when(predicate((i) => true), function);
+  PatternMatcher<I, O> otherwise(O function(I input)) =>
+      when<I>(predicate((i) => true), function);
 
   O apply(I input) => call(input);
 
   O call(I input) {
+    for (var c in _cases) {
+      if (c.matches(input)) {
+        return c(input);
+      }
+    }
+    return null;
+  }
+}
+
+class AsyncPatternMatcher<I, O> implements Function {
+  List<_Case> _cases;
+
+  AsyncPatternMatcher(this._cases);
+
+  AsyncPatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) => when(
+      new TransformingPredicate<I, Future<T>>(
+          (i) => i?.runtimeType == type, identity),
+      function);
+
+  AsyncPatternMatcher<I, O> when<T>(
+      TransformingPredicate<I, Future<T>> predicate, O function(T input)) {
+    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
+    newCases.add(new _Case(predicate, function));
+    return new AsyncPatternMatcher(newCases);
+  }
+
+  AsyncPatternMatcher<I, O> when2<T1, T2>(
+      TransformingPredicate<I, Future<Pair<T1, T2>>> predicate,
+      O function(T1 input1, T2 input2)) {
+    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
+    newCases.add(new _Case(predicate, (p) async {
+      p = await (await p);
+      return function(p.a, p.b);
+    }));
+    return new AsyncPatternMatcher(newCases);
+  }
+
+  AsyncPatternMatcher<I, O> otherwise(O function(I input)) =>
+      when<I>(predicate((i) => true), function);
+
+  Future<O> apply(I input) => call(input);
+
+  Future<O> call(I input) {
     for (var c in _cases) {
       if (c.matches(input)) {
         return c(input);

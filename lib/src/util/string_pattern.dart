@@ -14,7 +14,7 @@ class StringPattern {
     if (match == null) {
       return null;
     }
-    var result = {};
+    var result = <String, String>{};
     _parameters.forEach((param) {
       result[param] = match[_parameters.indexOf(param) + 1];
     });
@@ -23,7 +23,8 @@ class StringPattern {
 
   void _createRegExp(String pattern) {
     _regExp = new RegExp(r'^' +
-        pattern.replaceAllMapped(new RegExp(r'(:\w+)|([^:]+)', caseSensitive: false), (Match m) {
+        pattern.replaceAllMapped(
+            new RegExp(r'(:\w+)|([^:]+)', caseSensitive: false), (Match m) {
           if (m[1] != null) {
             _parameters.add(m[1].substring(1));
             return r'(.+)';
@@ -34,5 +35,7 @@ class StringPattern {
         r'$');
   }
 
-  String _quote(String string) => string.replaceAllMapped(new RegExp(r'([\.\?\\\[\]\{\}\-\*\$\^\+\<\>\|])|(.)'), (m) => m[1] != null ? r'\' + m[1] : m[2]);
+  String _quote(String string) => string.replaceAllMapped(
+      new RegExp(r'([.?\\\[\]{\}\-*$^+<>|])|(.)'),
+      (m) => m[1] != null ? r'\' + m[1] : m[2]);
 }
