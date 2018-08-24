@@ -28,7 +28,13 @@ class Daemon {
   String host = '0.0.0.0';
   int port = 8080;
   int numberOfWorkers = 1;
-  String workingDir = '${Directory.current.path}/scripts';
+  String workingDir;
+
+  Daemon({this.workingDir}) {
+    if(workingDir == null) {
+      workingDir = '${Directory.current.path}/scripts';
+    }
+  }
 
   Future run() async {
     var handler = const Pipeline()

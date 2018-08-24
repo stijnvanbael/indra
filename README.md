@@ -26,7 +26,7 @@ main(List<String> args, SendPort outputPort) async {
 }
 ```
 
-You can either run this script directly by running `dart reflective.dart` from a Dart project that declares `indra` as a dependency in `pubspec.yaml`.
+You can either run this script directly by running `dart <script>.dart` from a Dart project that declares `indra` as a dependency in `pubspec.yaml`.
 Or you can run it from the daemon.
 To do so, `reflective.dart` must be placed in the `scripts/` folder relative to the path where you've checked out Indra.
 Run `dart bin/daemon.dart` and call `POST /jobs/reflective/schedule` on `localhost:8080`.
