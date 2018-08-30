@@ -8,7 +8,5 @@ String clean = 'clean';
 String build = 'build';
 
 class Gradle {
-  static Future run(List<String> tasks) async {
-    await Shell.execute('gradle', tasks);
-  }
+  static Future run(List<String> tasks) => Shell.execute('gradle', tasks);
 }

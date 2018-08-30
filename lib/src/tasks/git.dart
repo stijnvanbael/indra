@@ -25,10 +25,11 @@ class GitRepo {
   Future cloneOrPull({String into}) async {
     if (into == null) {
       into = params['jobName'];
-      if(into == null) {
+      if (into == null) {
         into = _extractDirFromUri();
       }
     }
+    Context.changeDir(Directory.current.path);
     var directory = new Directory('${Shell.workingDirectory}/$into');
     if (await directory.exists()) {
       await pull(into: into);
@@ -40,14 +41,25 @@ class GitRepo {
 
   Future pull({String into}) async {
     List<String> args = ['pull', 'origin', _branch];
-    await Shell.execute('git', args, workingDirectory: '${Shell.workingDirectory}/$into');
+    await Shell.execute('git', args,
+        workingDirectory: '${Shell.workingDirectory}/$into');
   }
 
   String _extractDirFromUri() {
     var match = _uriPattern.firstMatch(_uri);
-    if(match != null) {
+    if (match != null) {
       return match[1];
     }
     return 'build';
+  }
+
+  Future tag(String tag) => Shell.execute('git', ['tag', tag]);
+
+  Future push({bool tags = false}) async {
+    var params = ['push'];
+    if (tags) {
+      params.add('--tags');
+    }
+    await Shell.execute('git', params);
   }
 }
