@@ -2,13 +2,16 @@ library indra.task;
 
 import 'dart:io';
 
+import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
+
+var cyan = new AnsiPen()..cyan(bold: true);
 
 class Context {
   static void changeDir(String dir) {
     if (Shell.workingDirectory != dir) {
       Shell.workingDirectory = dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
-      print('\$ cd ${Shell.workingDirectory}');
+      print(cyan('\$ cd ${Shell.workingDirectory}'));
     }
   }
 }

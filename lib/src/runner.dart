@@ -29,7 +29,9 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
   _configureOutput(outputPort, control);
   _configureErrorHandler(errorPort, control);
   await exitPort.listen((m) {
-    output.showEndScript(script);
+    if (!control.failed) {
+      output.showEndScript(script);
+    }
     outputPort.close();
     errorPort.close();
     exitPort.close();
