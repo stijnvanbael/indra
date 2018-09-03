@@ -17,6 +17,11 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
     }
     params[keyValue[0]] = keyValue[1];
   });
-  Context.changeDir(Shell.workingDirectory);
+  if (params.containsKey('workingDir')) {
+    Context.changeDir(params['workingDir']);
+  } else {
+    Context.changeDir(Shell.workingDirectory);
+  }
+  Shell.rootDirectory = Shell.workingDirectory;
   return params;
 }

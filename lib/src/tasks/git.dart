@@ -29,7 +29,7 @@ class GitRepo {
         into = _extractDirFromUri();
       }
     }
-    Context.changeDir(Directory.current.path);
+    Context.changeDir(Shell.rootDirectory);
     var directory = new Directory('${Shell.workingDirectory}/$into');
     if (await directory.exists()) {
       await pull(into: into);

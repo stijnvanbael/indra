@@ -15,7 +15,14 @@ main(List<String> args) {
     if (!script.endsWith('.dart')) {
       script = '$script.dart';
     }
-    runScript('${Directory.current.path}/${script}', args.sublist(1),
-        new RunnerControl());
+    var workingDirectory;
+    if (script.contains('/')) {
+      var path = script.substring(0, script.lastIndexOf('/'));
+      script = script.substring(script.lastIndexOf('/') + 1);
+      workingDirectory = '${Directory.current.path}/$path';
+    } else {
+      workingDirectory = Directory.current.path;
+    }
+    runScript('$workingDirectory/${script}', args.sublist(1), new RunnerControl());
   }
 }

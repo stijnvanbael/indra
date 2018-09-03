@@ -11,13 +11,12 @@ Output output = new ConsoleOutput();
 /**
  * Spawns a new isolate to run the specified script. The returned Future will complete when the script completes.
  */
-Future runScript(String script,
-    [List<String> args = const [], RunnerControl control]) async {
+Future runScript(String script, [List<String> args = const [], RunnerControl control]) async {
   var exitPort = new ReceivePort();
   var errorPort = new ReceivePort();
   var outputPort = new ReceivePort();
   output.showStartRunner();
-  args = _addWorkingDir(script, args);
+  args = _addParams(script, args);
   control.isolate = await Isolate.spawnUri(
     new Uri.file(script),
     args,
@@ -40,11 +39,12 @@ Future runScript(String script,
   }).asFuture();
 }
 
-List<String> _addWorkingDir(String script, List<String> args) {
-  var workingDir =
-      script.substring(script.lastIndexOf('/') + 1, script.indexOf('.dart'));
+List<String> _addParams(String script, List<String> args) {
+  var workingDir = script.substring(0, script.lastIndexOf('/'));
+  var jobName = script.substring(script.lastIndexOf('/') + 1, script.indexOf('.dart'));
   var newArgs = new List<String>.from(args);
-  newArgs.add('jobName=$workingDir');
+  newArgs.add('jobName=$jobName');
+  newArgs.add('workingDir=$workingDir');
   return newArgs;
 }
 
