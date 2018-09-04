@@ -40,9 +40,8 @@ class GitRepo {
   }
 
   Future pull({String into}) async {
-    List<String> args = ['pull', 'origin', _branch];
-    await Shell.execute('git', args,
-        workingDirectory: '${Shell.workingDirectory}/$into');
+    await Shell.execute('git', ['checkout', _branch], workingDirectory: '${Shell.workingDirectory}/$into');
+    await Shell.execute('git', ['pull', 'origin', _branch], workingDirectory: '${Shell.workingDirectory}/$into');
   }
 
   String _extractDirFromUri() {
