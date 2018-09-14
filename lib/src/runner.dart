@@ -43,7 +43,9 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
 
 List<String> _addParams(String script, List<String> args) {
   var workingDir = script.substring(0, script.lastIndexOf('/'));
-  var jobName = script.substring(script.lastIndexOf('/') + 1, script.indexOf('.dart'));
+  var jobName = script.endsWith("/build.dart")
+      ? workingDir.substring(workingDir.lastIndexOf('/') + 1)
+      : script.substring(script.lastIndexOf('/') + 1, script.indexOf('.dart'));
   var newArgs = new List<String>.from(args);
   newArgs.add('jobName=$jobName');
   newArgs.add('workingDir=$workingDir');
