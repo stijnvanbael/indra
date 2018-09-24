@@ -8,10 +8,16 @@ import 'package:indra/src/runner.dart';
 var red = new AnsiPen()..red(bold: true);
 
 main(List<String> args) {
+  if (args.isNotEmpty && args[0].contains('=')) {
+    args = new List.from(args);
+    args.insert(0, 'build.dart');
+  }
   if (args.isEmpty) {
     var defaultScript = new File('${Directory.current.path}/build.dart');
     if (!defaultScript.existsSync()) {
-      print(red('Usage: indra <script> [param1=value [param2=value [...]]]'));
+      print(red('Usage: indra <job> [param1=value [param2=value [...]]]\n'
+          'job: the job to run, defaults to build.dart, the .dart suffix must not be provided\n'
+          'param1, param2, ...: parameters to pass to the job'));
       exit(-1);
     } else {
       args = ['build.dart'];
