@@ -6,7 +6,39 @@ Scripts can be ran from an IDE and debugged.
 Indra runs as a command line tool or as a daemon with a JSON API.
 Indra has a user interface that interacts with the daemon.
 
-**Example script: reflective.dart**
+Installation
+------------
+
+First, install [Dart](https://www.dartlang.org/install).
+
+Then, clone Indra from GitHub:
+
+```
+git clone https://github.com/stijnvanbael/indra.git
+```
+
+Finally define an alias for Indra in `~/.bash_profile`:
+
+```
+alias indra='dart <path-to-indra>/bin/run.dart'
+```
+
+Now you can run any Indra script as
+
+```
+indra <job.dart> [param1=value [param2=value [...]]]
+```
+
+Or in case the file is named build.dart, simply
+
+```
+indra <[param1=value [param2=value [...]]]
+```
+
+Example
+-------
+
+Example script: reflective.dart
 
 ```dart
 import 'dart:isolate';
@@ -26,7 +58,8 @@ main(List<String> args, SendPort outputPort) async {
 }
 ```
 
-You can either run this script directly by running `dart <script>.dart` from a Dart project that declares `indra` as a dependency in `pubspec.yaml`.
-Or you can run it from the daemon.
-To do so, `reflective.dart` must be placed in the `scripts/` folder relative to the path where you've checked out Indra.
-Run `dart bin/daemon.dart` and call `POST /jobs/reflective/schedule` on `localhost:8080`.
+To run the script
+
+```
+indra reflective.dart
+```
