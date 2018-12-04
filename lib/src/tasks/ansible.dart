@@ -13,4 +13,8 @@ class Ansible {
     }
     await Shell.execute('ansible-playbook', params);
   }
+
+  static Future galaxyInstall({String role}) async {
+    await Shell.execute('ansible-galaxy', ['install', role]);
+  }
 }
