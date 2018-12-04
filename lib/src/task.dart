@@ -11,7 +11,7 @@ class Context {
   static void changeDir(String dir) {
     if (Shell.workingDirectory != dir) {
       Shell.workingDirectory = dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
-      print(cyan('\$ cd ${Shell.workingDirectory}'));
+      output.showMessage(cyan('\$ cd ${Shell.workingDirectory}\n'));
     }
   }
 }

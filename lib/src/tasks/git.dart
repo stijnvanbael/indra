@@ -22,7 +22,7 @@ class GitRepo {
     await Shell.execute('git', args);
   }
 
-  Future cloneOrPull({String into}) async {
+  Future cloneOrPull({String into, bool clean = false}) async {
     if (into == null) {
       into = params['jobName'];
       if (into == null) {
@@ -31,6 +31,9 @@ class GitRepo {
     }
     Context.changeDir(Shell.rootDirectory);
     var directory = new Directory('${Shell.workingDirectory}/$into');
+    if (clean) {
+      await this._clean(directory);
+    }
     if (await directory.exists()) {
       await pull(into: into);
     } else {
@@ -60,5 +63,12 @@ class GitRepo {
       params.add('--tags');
     }
     await Shell.execute('git', params);
+  }
+
+  Future _clean(Directory directory) async {
+    if (await directory.exists()) {
+      output.showMessage(cyan('\$ rm -rf ${directory.path}\n'));
+      await directory.delete(recursive: true);
+    }
   }
 }
