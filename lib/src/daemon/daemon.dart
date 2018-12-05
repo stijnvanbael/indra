@@ -45,7 +45,7 @@ class Daemon {
         )
         .when2(
           matchRequest('POST', '/jobs/:name/schedule'),
-          (headers, body) => _schedule(headers['name'], _isNotEmpty(body) ? json.decode(body) : {}),
+          (headers, body) => _schedule(headers['name'], _fromJson(body)),
         )
         .when2(
           matchRequest('DELETE', '/jobs/:name/:number'),
@@ -104,17 +104,19 @@ class Daemon {
     StringPattern pathPattern = new StringPattern(pathExpression);
     return predicate(
       (Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
-      (Request request) async => new Pair(extractHeaders(request, pathPattern), await request.readAsString()),
+      (Request request) async => new Pair(_extractHeaders(request, pathPattern), await request.readAsString()),
       '$method $pathExpression',
     );
   }
 
-  static Map<String, String> extractHeaders(Request request, StringPattern pathPattern) {
+  static Map<String, String> _extractHeaders(Request request, StringPattern pathPattern) {
     var headers = new Map<String, String>.from(request.headers);
     var pathParams = pathPattern.parse(request.requestedUri.path);
     pathParams.forEach((k, v) => headers[k] = v);
     return headers;
   }
+
+  static _fromJson(String body) => _isNotEmpty(body) ? json.decode(body) : {};
 
   static _isNotEmpty(object) => object != null && object != '';
 }
