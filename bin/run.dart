@@ -16,7 +16,7 @@ main(List<String> args) {
     var defaultScript = new File('${Directory.current.path}/build.dart');
     if (!defaultScript.existsSync()) {
       print(red('Usage: indra <job> [param1=value [param2=value [...]]]\n'
-          'job: the job to run, defaults to build.dart, the .dart suffix must not be provided\n'
+          'job: the job to run, defaults to build.dart, the .dart extension can be omitted\n'
           'param1, param2, ...: parameters to pass to the job'));
       exit(-1);
     } else {

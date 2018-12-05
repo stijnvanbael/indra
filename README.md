@@ -17,16 +17,16 @@ Then, clone Indra from GitHub:
 git clone https://github.com/stijnvanbael/indra.git
 ```
 
-Finally define an alias for Indra in `~/.bash_profile`:
+Finally, install Indra:
 
 ```
-alias indra='dart <path-to-indra>/bin/run.dart'
+indra/bin/install.sh
 ```
 
 Now you can run any Indra script as
 
 ```
-indra <job.dart> [param1=value [param2=value [...]]]
+indra <script.dart> [param1=value [param2=value [...]]]
 ```
 
 Or in case the file is named build.dart, simply
@@ -62,4 +62,31 @@ To run the script
 
 ```
 indra reflective.dart
+```
+
+Daemon
+------
+
+Indra can also be ran as a daemon:
+
+```
+indra-daemon <working/dir>
+```
+
+Any Dart file under the working directory can be scheduled to run from the daemon by calling:
+
+```
+POST http://localhost:8080/jobs/<name of the file excluding .dart>/schedule
+```
+
+You can request which jobs are running by calling:
+
+```
+GET http://localhost:8080/jobs
+```
+
+You can request the output of a job by calling:
+
+```
+GET http://localhost:8080/jobs/<script name>/<sequence number>/output
 ```

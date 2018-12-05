@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/daemon/script.dart';
@@ -31,51 +30,44 @@ class Daemon {
   String workingDir;
 
   Daemon({this.workingDir}) {
-    if(workingDir == null) {
-      workingDir = '${Directory.current.path}/scripts';
+    if (workingDir == null) {
+      workingDir = '~/indra/scripts';
     }
   }
 
   Future run() async {
-    var handler = const Pipeline()
-        .addMiddleware(logRequests())
-        .addHandler(_handleRequest);
+    var handler = const Pipeline().addMiddleware(logRequests()).addHandler(_handleRequest);
     _workerPool = new WorkerPool(numberOfWorkers, workingDir: workingDir);
     _scriptRepository = new ScriptRepository(workingDir);
     try {
       await serve(handler, host, port);
-      print(gray('Indra daemon started, listening on ') +
-          boldGreen('$host:$port'));
+      print(gray('Indra daemon started, listening on ') + boldGreen('$host:$port'));
+      print(gray('Working directory: ') + boldGreen('$workingDir'));
     } catch (e) {
       print(red('Could not start server, reason:\n$e'));
     }
   }
 
-  Future<Response> _handleRequest(Request request) =>
-      asyncMatcher<Request, Response>()
-          .when2(matchRequest('GET', '/jobs/:name/:number/output'),
-              (headers, body) => _output(headers['name'], headers['number']))
-          .when2(matchRequest('GET', '/jobs'), (headers, body) => _jobs())
-          .when2(
-              matchRequest('POST', '/jobs/:name/schedule'),
-              (headers, body) => _schedule(
-                  headers['name'], _isNotEmpty(body) ? json.decode(body) : {}))
-          .when2(matchRequest('DELETE', '/jobs/:name/:number'),
-              (headers, body) => _cancel(headers['name'], headers['number']))
-          .otherwise((r) => new Response.notFound('Not found'))
-          .apply(request);
+  Future<Response> _handleRequest(Request request) => asyncMatcher<Request, Response>()
+      .when2(matchRequest('GET', '/jobs/:name/:number/output'),
+          (headers, body) => _output(headers['name'], headers['number']))
+      .when2(matchRequest('GET', '/jobs'), (headers, body) => _jobs())
+      .when2(matchRequest('POST', '/jobs/:name/schedule'),
+          (headers, body) => _schedule(headers['name'], _isNotEmpty(body) ? json.decode(body) : {}))
+      .when2(
+          matchRequest('DELETE', '/jobs/:name/:number'), (headers, body) => _cancel(headers['name'], headers['number']))
+      .otherwise((r) => new Response.notFound('Not found'))
+      .apply(request);
 
   Response _schedule(String scriptName, Map<String, String> arguments) {
-    var argumentsAsList =
-        arguments.keys.map((k) => '$k=${arguments[k]}').toList();
+    var argumentsAsList = arguments.keys.map((k) => '$k=${arguments[k]}').toList();
     var script = _scriptRepository.getScript(scriptName);
     _workerPool.schedule(script, argumentsAsList);
     return new Response.ok('OK');
   }
 
   Response _jobs() {
-    var jobsJson =
-        json.encode(_workerPool.jobs.map((j) => j.toJson()).toList());
+    var jobsJson = json.encode(_workerPool.jobs.map((j) => j.toJson()).toList());
     return new Response.ok(jobsJson, headers: {contentType: applicationJson});
   }
 
@@ -98,20 +90,13 @@ class Daemon {
     return new Response.ok('OK');
   }
 
-  TransformingPredicate<Request, Future<Pair<Map, String>>> matchRequest(
-      String method, String pathExpression) {
+  TransformingPredicate<Request, Future<Pair<Map, String>>> matchRequest(String method, String pathExpression) {
     StringPattern pathPattern = new StringPattern(pathExpression);
-    return predicate(
-        (Request request) =>
-            request.method == method &&
-            pathPattern.matches(request.requestedUri.path),
-        (Request request) async => new Pair(
-            extractHeaders(request, pathPattern),
-            await request.readAsString()));
+    return predicate((Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
+        (Request request) async => new Pair(extractHeaders(request, pathPattern), await request.readAsString()));
   }
 
-  Map<String, String> extractHeaders(
-      Request request, StringPattern pathPattern) {
+  Map<String, String> extractHeaders(Request request, StringPattern pathPattern) {
     var headers = new Map<String, String>.from(request.headers);
     var pathParams = pathPattern.parse(request.requestedUri.path);
     pathParams.forEach((k, v) => headers[k] = v);
