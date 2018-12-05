@@ -5,37 +5,34 @@ PatternMatcher<I, O> matcher<I, O>() => new PatternMatcher([]);
 AsyncPatternMatcher<I, O> asyncMatcher<I, O>() => new AsyncPatternMatcher([]);
 
 TransformingPredicate<I, T> predicate<I, T>(bool predicate(I input),
-        [T transformer(I input) = identity]) =>
-    new TransformingPredicate<I, T>(predicate, transformer);
+        [T transformer(I input) = identity, String description]) =>
+    new TransformingPredicate<I, T>(predicate, transformer, description);
 
-T identity<T>(input) => input as T;
+T identity<T>(dynamic input) => input as T;
 
 class PatternMatcher<I, O> implements Function {
   List<_Case> _cases;
 
   PatternMatcher(this._cases);
 
-  PatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) => when(
-      new TransformingPredicate<I, T>((i) => i?.runtimeType == type, identity),
-      function);
+  PatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) =>
+      when(new TransformingPredicate<I, T>((i) => i?.runtimeType == type, identity), function);
 
-  PatternMatcher<I, O> when<T>(
-      TransformingPredicate<I, T> predicate, O function(T input)) {
+  PatternMatcher<I, O> when<T>(TransformingPredicate<I, T> predicate, O function(T input)) {
     List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
     newCases.add(new _Case(predicate, function));
     return new PatternMatcher(newCases);
   }
 
   PatternMatcher<I, O> when2<T1, T2>(
-      TransformingPredicate<I, Pair<T1, T2>> predicate,
-      O function(T1 input1, T2 input2)) {
+      TransformingPredicate<I, Pair<T1, T2>> predicate, O function(T1 input1, T2 input2)) {
     List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
     newCases.add(new _Case(predicate, (p) => function(p.a, p.b)));
     return new PatternMatcher(newCases);
   }
 
   PatternMatcher<I, O> otherwise(O function(I input)) =>
-      when<I>(predicate((i) => true), function);
+      when<I>(predicate((i) => true, identity, 'Otherwise'), function);
 
   O apply(I input) => call(input);
 
@@ -50,26 +47,25 @@ class PatternMatcher<I, O> implements Function {
 }
 
 class AsyncPatternMatcher<I, O> implements Function {
-  List<_Case> _cases;
+  List<_Case<I, dynamic, Future<O>>> _cases;
 
   AsyncPatternMatcher(this._cases);
 
-  AsyncPatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) => when(
-      new TransformingPredicate<I, Future<T>>(
-          (i) => i?.runtimeType == type, identity),
-      function);
+  AsyncPatternMatcher<I, O> whenIs<T>(Type type, O function(T input)) =>
+      when(new TransformingPredicate<I, Future<T>>((i) => i?.runtimeType == type, identity), function);
 
-  AsyncPatternMatcher<I, O> when<T>(
-      TransformingPredicate<I, Future<T>> predicate, O function(T input)) {
-    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
-    newCases.add(new _Case(predicate, function));
+  AsyncPatternMatcher<I, O> when<T>(TransformingPredicate<I, Future<T>> predicate, O function(T input)) {
+    List<_Case<I, dynamic, Future<O>>> newCases = new List.from(_cases);
+    newCases.add(new _Case(predicate, (i) async {
+      i = await (await i);
+      return function(i);
+    }));
     return new AsyncPatternMatcher(newCases);
   }
 
   AsyncPatternMatcher<I, O> when2<T1, T2>(
-      TransformingPredicate<I, Future<Pair<T1, T2>>> predicate,
-      O function(T1 input1, T2 input2)) {
-    List<_Case<dynamic, dynamic, dynamic>> newCases = new List.from(_cases);
+      TransformingPredicate<I, Future<Pair<T1, T2>>> predicate, O function(T1 input1, T2 input2)) {
+    List<_Case<I, dynamic, Future<O>>> newCases = new List.from(_cases);
     newCases.add(new _Case(predicate, (p) async {
       p = await (await p);
       return function(p.a, p.b);
@@ -78,7 +74,7 @@ class AsyncPatternMatcher<I, O> implements Function {
   }
 
   AsyncPatternMatcher<I, O> otherwise(O function(I input)) =>
-      when<I>(predicate((i) => true), function);
+      when<I>(predicate((i) => true, (i) async => i, 'Otherwise'), function);
 
   Future<O> apply(I input) => call(input);
 
@@ -100,7 +96,12 @@ class _Case<I, T, O> {
 
   bool matches(I input) => _transformingPredicate.test(input);
 
-  O call(I input) => _function(_transformingPredicate.transform(input));
+  O call(I input) {
+    var transformed = _transformingPredicate.transform(input);
+    var applied = _function(transformed);
+    print(applied);
+    return applied;
+  }
 }
 
 class Pair<A, B> {
@@ -113,17 +114,24 @@ class Pair<A, B> {
 class TransformingPredicate<I, T> {
   Function _predicate;
   Function _transformer;
+  String _description;
 
-  TransformingPredicate(bool predicate(I input), T transformer(I input))
+  TransformingPredicate(bool predicate(I input), T transformer(I input), [String description])
       : this._predicate = predicate,
-        this._transformer = transformer;
+        this._transformer = transformer,
+        this._description = description;
 
   bool test(I input) => _predicate(input);
 
   Future<T> transform(I input) async {
-    if (input is Future) {
+    while (input is Future) {
       input = await input;
     }
     return _transformer(input);
+  }
+
+  @override
+  String toString() {
+    return _description != null ? _description : 'TransformingPredicate';
   }
 }

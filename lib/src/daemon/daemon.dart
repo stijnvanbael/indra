@@ -28,11 +28,30 @@ class Daemon {
   int port = 8080;
   int numberOfWorkers = 1;
   String workingDir;
+  AsyncPatternMatcher<Request, Response> requestMatcher;
 
   Daemon({this.workingDir}) {
     if (workingDir == null) {
       workingDir = '~/indra/scripts';
     }
+    requestMatcher = asyncMatcher<Request, Response>()
+        .when2(
+          matchRequest('GET', '/jobs/:name/:number/output'),
+          (headers, body) => _output(headers['name'], headers['number']),
+        )
+        .when2(
+          matchRequest('GET', '/jobs'),
+          (headers, body) => _jobs(),
+        )
+        .when2(
+          matchRequest('POST', '/jobs/:name/schedule'),
+          (headers, body) => _schedule(headers['name'], _isNotEmpty(body) ? json.decode(body) : {}),
+        )
+        .when2(
+          matchRequest('DELETE', '/jobs/:name/:number'),
+          (headers, body) => _cancel(headers['name'], headers['number']),
+        )
+        .otherwise((r) => new Response.notFound('Not found'));
   }
 
   Future run() async {
@@ -48,16 +67,7 @@ class Daemon {
     }
   }
 
-  Future<Response> _handleRequest(Request request) => asyncMatcher<Request, Response>()
-      .when2(matchRequest('GET', '/jobs/:name/:number/output'),
-          (headers, body) => _output(headers['name'], headers['number']))
-      .when2(matchRequest('GET', '/jobs'), (headers, body) => _jobs())
-      .when2(matchRequest('POST', '/jobs/:name/schedule'),
-          (headers, body) => _schedule(headers['name'], _isNotEmpty(body) ? json.decode(body) : {}))
-      .when2(
-          matchRequest('DELETE', '/jobs/:name/:number'), (headers, body) => _cancel(headers['name'], headers['number']))
-      .otherwise((r) => new Response.notFound('Not found'))
-      .apply(request);
+  Future<Response> _handleRequest(Request request) => requestMatcher.apply(request);
 
   Response _schedule(String scriptName, Map<String, String> arguments) {
     var argumentsAsList = arguments.keys.map((k) => '$k=${arguments[k]}').toList();
@@ -90,18 +100,21 @@ class Daemon {
     return new Response.ok('OK');
   }
 
-  TransformingPredicate<Request, Future<Pair<Map, String>>> matchRequest(String method, String pathExpression) {
+  static TransformingPredicate<Request, Future<Pair<Map, String>>> matchRequest(String method, String pathExpression) {
     StringPattern pathPattern = new StringPattern(pathExpression);
-    return predicate((Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
-        (Request request) async => new Pair(extractHeaders(request, pathPattern), await request.readAsString()));
+    return predicate(
+      (Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
+      (Request request) async => new Pair(extractHeaders(request, pathPattern), await request.readAsString()),
+      '$method $pathExpression',
+    );
   }
 
-  Map<String, String> extractHeaders(Request request, StringPattern pathPattern) {
+  static Map<String, String> extractHeaders(Request request, StringPattern pathPattern) {
     var headers = new Map<String, String>.from(request.headers);
     var pathParams = pathPattern.parse(request.requestedUri.path);
     pathParams.forEach((k, v) => headers[k] = v);
     return headers;
   }
 
-  _isNotEmpty(object) => object != null && object != '';
+  static _isNotEmpty(object) => object != null && object != '';
 }
