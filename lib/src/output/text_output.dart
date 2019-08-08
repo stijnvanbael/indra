@@ -7,7 +7,7 @@ var cyan = new AnsiPen()..cyan(bold: true);
 var green = new AnsiPen()..green(bold: true);
 var yellow = new AnsiPen()..yellow(bold: true);
 var red = new AnsiPen()..red(bold: true);
-var white = new AnsiPen()..white(bold: true);
+var white = new AnsiPen()..rgb(r: 1.0, g: 1.0, b: 1.0);
 
 abstract class TextOutput implements Output {
   writeLine(String line);

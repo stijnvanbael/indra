@@ -6,6 +6,10 @@ import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
 
 var red = new AnsiPen()..red(bold: true);
+var yellow = new AnsiPen()..yellow(bold: true);
+var green = new AnsiPen()..green(bold: true);
+var cyan = new AnsiPen()..cyan(bold: true);
+var globalFolder = '${homeFolder()}/.indra/scripts';
 
 main(List<String> args) {
   if (args.isNotEmpty && args[0].contains('=')) {
@@ -35,5 +39,24 @@ main(List<String> args) {
   } else {
     workingDirectory = Directory.current.path;
   }
-  runScript('$workingDirectory/${script}', args.sublist(1), new RunnerControl());
+  var path = '$workingDirectory/$script';
+  if (!File(path).existsSync()) {
+    print('Trying ${cyan(path)} > ${yellow('NOT FOUND')}');
+    path = '$globalFolder/$script';
+    if (!File(path).existsSync()) {
+      print('Trying ${cyan(path)} > ${yellow('NOT FOUND')}');
+      print('');
+      print(red('ERROR: Could not find a script to run'));
+      exit(-1);
+    }
+  }
+  runScript(path, args.sublist(1), new RunnerControl());
+}
+
+String homeFolder() {
+  if (Platform.isWindows) {
+    return Platform.environment['UserProfile'];
+  } else {
+    return Platform.environment['HOME'];
+  }
 }

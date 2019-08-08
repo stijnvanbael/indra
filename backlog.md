@@ -1,7 +1,7 @@
 Backlog
 =======
 
-* [ ] Global jobs
+* [ ] Git verify branch
 * [ ] Jira read ticket info
 * [ ] Git commit with message
 * [ ] Bitbucket create pull request
@@ -9,3 +9,4 @@ Backlog
 
 Done
 ----
+* [X] Global scripts

@@ -44,7 +44,6 @@ Example script: reflective.dart
 import 'dart:isolate';
 
 import 'package:indra/src/cli.dart';
-import 'package:indra/src/task.dart';
 import 'package:indra/src/tasks/git.dart';
 import 'package:indra/src/tasks/pub.dart';
 
