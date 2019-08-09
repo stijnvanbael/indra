@@ -65,7 +65,7 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
-  Future verifyBranch({String regex}) async {
+  Future<String> verifyBranch({String regex}) async {
     var branch = await Shell.execute('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
     if (branch.contains('\n')) {
       branch = branch.substring(0, branch.indexOf('\n'));
@@ -76,6 +76,7 @@ class GitRepo {
     } else {
       output.showMessage('On branch "$branch" > OK\n');
     }
+    return branch;
   }
 
   Future _clean(Directory directory) async {
