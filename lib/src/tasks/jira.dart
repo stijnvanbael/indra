@@ -9,13 +9,11 @@ class Jira {
   final String protocol;
   final int version;
   final Client _client = Client();
-  final String userName;
-  final String apiKey;
+  final String authentication;
 
   Jira(
     this.host, {
-    @required this.userName,
-    @required this.apiKey,
+    @required this.authentication,
     this.protocol: 'https',
     this.version: 3,
   });
@@ -24,14 +22,15 @@ class Jira {
     var url = '$protocol://$host/rest/api/$version/issue/$issueKey';
     output.showStartStep('GET', [url]);
     var response = await _client.get(url, headers: {
-      'Authorization': 'Basic ${base64.encode(utf8.encode('$userName:$apiKey'))}',
+      'Authorization': 'Basic $authentication',
     });
     if (response.statusCode == 200) {
       return JiraIssue.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
       return null;
     } else {
-      throw TaskFailed('Error getting issue with key "$issueKey": ${response.statusCode} ${response.body}');
+      output.showError('Error getting issue with key "$issueKey": HTTP ${response.statusCode}');
+      throw TaskFailed();
     }
   }
 }

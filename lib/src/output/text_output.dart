@@ -18,10 +18,8 @@ abstract class TextOutput implements Output {
 
   @override
   void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr) {
-    stdout.listen((e) =>
-        write(new String.fromCharCodes(e)));
-    stderr.listen((e) =>
-        writeError(new String.fromCharCodes(e)));
+    stdout.listen((e) => write(new String.fromCharCodes(e)));
+    stderr.listen((e) => writeError(new String.fromCharCodes(e)));
   }
 
   @override
@@ -63,7 +61,7 @@ abstract class TextOutput implements Output {
   }
 
   @override
-  void showError(String message, String stackTrace) {
+  void showError(String message, [String stackTrace = '']) {
     writeError('Error: $message\n$stackTrace\n');
     writeLine(red('Stopped on error\n'));
   }

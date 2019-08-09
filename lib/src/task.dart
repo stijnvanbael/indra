@@ -37,8 +37,8 @@ class Shell {
     var code = await completer.future;
     output.showEndStep(code);
     if (code != 0) {
-      output.showJobFailed();
-      throw new TaskFailed('Process "$executable" failed with exit code $code');
+      output.showError('Process "$executable" failed with exit code $code');
+      throw new TaskFailed();
     }
     return processOutput.toString();
   }

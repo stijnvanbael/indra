@@ -15,7 +15,7 @@ abstract class Output {
 
   void showEndScript(String script);
 
-  void showError(String message, String stackTrace);
+  void showError(String message, [String stackTrace]);
 
   void showJobFailed();
 

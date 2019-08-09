@@ -38,6 +38,8 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
   await exitPort.listen((m) {
     if (!control.failed) {
       output.showEndScript(script);
+    } else {
+      output.showJobFailed();
     }
     outputPort.close();
     errorPort.close();
