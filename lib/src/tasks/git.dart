@@ -82,6 +82,14 @@ class GitRepo {
 
   Future rebase({@required String branch}) => Shell.execute('git', ['rebase', branch]);
 
+  Future reset({bool hard: false}) async {
+    var params = ['reset'];
+    if (hard) {
+      params.add('--hard');
+    }
+    await Shell.execute('git', params);
+  }
+
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
       output.showMessage(cyan('\$ rm -rf ${directory.path}\n'));
