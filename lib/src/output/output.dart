@@ -1,11 +1,11 @@
 library indra.output;
 
-import 'dart:io';
+import 'dart:async';
 
 abstract class Output {
   void showStartStep(String executable, List<String> args);
 
-  void showProcessOutput(Process process);
+  void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr);
 
   void showEndStep(int exitCode);
 

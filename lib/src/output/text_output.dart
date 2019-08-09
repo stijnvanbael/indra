@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:async';
 
 import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/output/output.dart';
@@ -17,9 +17,11 @@ abstract class TextOutput implements Output {
   writeError(String text);
 
   @override
-  void showProcessOutput(Process process) {
-    process.stdout.listen((e) => write(new String.fromCharCodes(e)));
-    process.stderr.listen((e) => writeError(new String.fromCharCodes(e)));
+  void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr) {
+    stdout.listen((e) =>
+        write(new String.fromCharCodes(e)));
+    stderr.listen((e) =>
+        writeError(new String.fromCharCodes(e)));
   }
 
   @override

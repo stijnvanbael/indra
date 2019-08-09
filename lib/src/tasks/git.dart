@@ -65,6 +65,19 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
+  Future verifyBranch({String regex}) async {
+    var branch = await Shell.execute('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+    if (branch.contains('\n')) {
+      branch = branch.substring(0, branch.indexOf('\n'));
+    }
+    if (!RegExp(regex).hasMatch(branch)) {
+      output.showError('Branch "$branch" does not match the required pattern "$regex"', '');
+      exit(-1);
+    } else {
+      output.showMessage('On branch "$branch" > OK\n');
+    }
+  }
+
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
       output.showMessage(cyan('\$ rm -rf ${directory.path}\n'));
