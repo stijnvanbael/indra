@@ -90,6 +90,13 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
+  Future addAndCommit({@required String message}) async {
+    await add('.');
+    await commit(message: message);
+  }
+
+  Future add(String file) => Shell.execute('git', ['add', file]);
+
   Future commit({@required String message}) => Shell.execute('git', ['commit', '-m', message]);
 
   Future _clean(Directory directory) async {

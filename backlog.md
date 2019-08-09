@@ -1,9 +1,9 @@
 Backlog
 =======
 
-* [ ] Jira read ticket info
+* [ ] Jira get issue
 * [ ] Bitbucket create pull request
-* [ ] Jira move ticket
+* [ ] Jira move issue
 
 Done
 ----
