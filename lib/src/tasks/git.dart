@@ -90,6 +90,8 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
+  Future commit({@required String message}) => Shell.execute('git', ['commit', '-m', message]);
+
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
       output.showMessage(cyan('\$ rm -rf ${directory.path}\n'));

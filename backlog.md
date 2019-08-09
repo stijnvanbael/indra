@@ -1,8 +1,6 @@
 Backlog
 =======
 
-* [ ] Git rebase
-* [ ] Git reset
 * [ ] Jira read ticket info
 * [ ] Git commit with message
 * [ ] Bitbucket create pull request
@@ -12,3 +10,6 @@ Done
 ----
 * [X] Global scripts
 * [X] Git verify branch
+* [X] Git rebase
+* [X] Git reset
+* [X] Git commit
