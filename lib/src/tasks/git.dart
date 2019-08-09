@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:indra/indra.dart';
 import 'package:indra/src/cli.dart';
+import 'package:meta/meta.dart';
 
 class GitRepo {
   String _uri;
@@ -65,7 +66,7 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
-  Future<String> verifyBranch({String regex}) async {
+  Future<String> verifyBranch({@required String regex}) async {
     var branch = await Shell.execute('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
     if (branch.contains('\n')) {
       branch = branch.substring(0, branch.indexOf('\n'));
@@ -78,6 +79,8 @@ class GitRepo {
     }
     return branch;
   }
+
+  Future rebase({@required String branch}) => Shell.execute('git', ['rebase', branch]);
 
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
