@@ -1,9 +1,8 @@
 Backlog
 =======
 
-* [ ] Jira get issue
-* [ ] Bitbucket create pull request
-* [ ] Jira move issue
+* [ ] Create Bitbucket pull request
+* [ ] Move Jira issue
 
 Done
 ----
@@ -12,3 +11,4 @@ Done
 * [X] Git rebase
 * [X] Git reset
 * [X] Git commit with message
+* [X] Get Jira issue
