@@ -7,8 +7,6 @@ abstract class Output {
 
   void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr);
 
-  void showEndStep(int exitCode);
-
   void showStartRunner();
 
   void showStartScript(String script, [List<String> args]);

@@ -21,7 +21,12 @@ class Shell {
   static String workingDirectory = Directory.current.path;
   static String rootDirectory = Directory.current.path;
 
-  static Future<String> execute(String executable, List<String> args, {String workingDirectory}) async {
+  static Future<String> execute(
+    String executable,
+    List<String> args, {
+    String workingDirectory,
+    bool reportFailure: true,
+  }) async {
     output.showStartStep(executable, args);
     var processOutput = StringBuffer();
     var process = await Process.start(
@@ -35,15 +40,18 @@ class Shell {
         onDone: () async => completer.complete(await process.exitCode));
     output.showProcessOutput(stdout, process.stderr);
     var code = await completer.future;
-    output.showEndStep(code);
     if (code != 0) {
-      output.showError('Process "$executable" failed with exit code $code');
-      throw new TaskFailed();
+      if (reportFailure) {
+        output.showError('Process "$executable" exited with code $code');
+      }
+      throw new TaskFailed(processOutput.toString());
     }
     return processOutput.toString();
   }
 }
 
 class TaskFailed implements Exception {
-  TaskFailed([String message]);
+  String message;
+
+  TaskFailed([this.message]);
 }

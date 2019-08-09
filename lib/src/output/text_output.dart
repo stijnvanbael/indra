@@ -29,15 +29,6 @@ abstract class TextOutput implements Output {
   }
 
   @override
-  void showEndStep(int exitCode) {
-    if (exitCode != 0) {
-      writeLine('');
-      writeLine(red('Step finished with exit code $exitCode'));
-    }
-    writeLine('');
-  }
-
-  @override
   void showStartRunner() {
     writeLine(cyan(r"  _____           _           "));
     writeLine(cyan(r"  \_   \_ __   __| |_ __ __ _ "));
@@ -62,8 +53,7 @@ abstract class TextOutput implements Output {
 
   @override
   void showError(String message, [String stackTrace = '']) {
-    writeError('Error: $message\n$stackTrace\n');
-    writeLine(red('Stopped on error\n'));
+    writeError(red('Error: $message\n$stackTrace\n'));
   }
 
   @override

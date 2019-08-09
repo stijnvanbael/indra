@@ -90,14 +90,27 @@ class GitRepo {
     await Shell.execute('git', params);
   }
 
-  Future addAndCommit({@required String message}) async {
+  Future addAndCommit({@required String message, bool allowClean: false}) async {
     await add('.');
-    await commit(message: message);
+    await commit(message: message, allowClean: allowClean);
   }
 
   Future add(String file) => Shell.execute('git', ['add', file]);
 
-  Future commit({@required String message}) => Shell.execute('git', ['commit', '-m', message]);
+  Future commit({@required String message, bool allowClean: false}) async {
+    try {
+      await Shell.execute('git', ['commit', '-m', message], reportFailure: !allowClean);
+    } on TaskFailed catch (e) {
+      if (allowClean) {
+        if (!e.message.contains('nothing to commit, working tree clean')) {
+          output.showError('Process "git" failed');
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    }
+  }
 
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
