@@ -8,8 +8,8 @@ class Jira {
   final String host;
   final String protocol;
   final int version;
-  final Client _client = Client();
   final String authentication;
+  final Client _client = Client();
 
   Jira(
     this.host, {
