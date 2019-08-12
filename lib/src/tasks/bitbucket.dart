@@ -32,7 +32,7 @@ class Bitbucket {
       },
     );
     if (response.statusCode == 201) {
-      output.showMessage('Created pull request for branch "$branch"');
+      output.showMessage('Created pull request for branch "$branch"\n');
     } else {
       output
           .showError('Error creating pull request for branch "$branch": HTTP ${response.statusCode}\n${response.body}');
