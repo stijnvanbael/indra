@@ -58,10 +58,17 @@ class GitRepo {
 
   Future tag(String tag) => Shell.execute('git', ['tag', tag]);
 
-  Future push({bool tags = false}) async {
+  Future push({
+    bool tags = false,
+    String remote: 'origin',
+    String branch,
+  }) async {
     var params = ['push'];
     if (tags) {
       params.add('--tags');
+    }
+    if (branch != null) {
+      params.addAll(['-u', remote, branch]);
     }
     await Shell.execute('git', params);
   }
