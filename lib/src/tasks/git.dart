@@ -57,7 +57,8 @@ class GitRepo {
         await _checkout(branch, into, false);
       } on TaskFailed {
         output.showMessage('Branch $branch does not exist yet, creating ...\n');
-        await _checkout(branch, into, createBranch);
+        await _checkout(branch, into, true);
+        await _checkout(branch, into, false);
       }
     } else {
       await _checkout(branch, into, createBranch);
