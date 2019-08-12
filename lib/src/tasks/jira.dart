@@ -5,21 +5,19 @@ import 'package:indra/indra.dart';
 import 'package:meta/meta.dart';
 
 class Jira {
-  final String host;
-  final String protocol;
-  final int version;
   final String authentication;
+  final String _baseUrl;
   final Client _client = Client();
 
   Jira(
-    this.host, {
+    String host, {
     @required this.authentication,
-    this.protocol: 'https',
-    this.version: 3,
-  });
+    String protocol: 'https',
+    int version: 3,
+  }) : _baseUrl = '$protocol://$host/rest/api/$version';
 
   Future<JiraIssue> getIssue(String issueKey) async {
-    var url = '$protocol://$host/rest/api/$version/issue/$issueKey';
+    var url = '$_baseUrl/issue/$issueKey';
     output.showStartStep('GET', [url]);
     var response = await _client.get(url, headers: {
       'Authorization': 'Basic $authentication',
@@ -33,6 +31,30 @@ class Jira {
       throw TaskFailed();
     }
   }
+
+  Future transitionIssue(String issueKey, {@required int transitionId}) async {
+    var url = '$_baseUrl/issue/$issueKey/transitions';
+    output.showStartStep('POST', [url]);
+    var response = await _client.post(
+      url,
+      body: jsonEncode(_createTransitionBody(transitionId)),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic $authentication',
+      },
+    );
+    if (response.statusCode == 204) {
+      output.showMessage('Transitioned issue "$issueKey"\n');
+    } else {
+      output
+          .showError('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
+      throw TaskFailed();
+    }
+  }
+
+  Map<String, dynamic> _createTransitionBody(int transitionId) => {
+        'transition': {'id': '$transitionId'}
+      };
 }
 
 class JiraIssue {

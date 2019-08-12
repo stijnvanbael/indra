@@ -6,22 +6,20 @@ import 'package:meta/meta.dart';
 
 class Bitbucket {
   final String authentication;
-  final String baseUrl;
-  final String project;
-  final String repository;
+  final String _baseUrl;
   final Client _client = Client();
 
   Bitbucket({
     String host = 'api.bitbucket.org',
     String protocol = 'https',
     num version = 2.0,
-    @required this.project,
-    @required this.repository,
+    @required String project,
+    @required String repository,
     @required this.authentication,
-  }) : baseUrl = '$protocol://$host/$version/repositories/$project/$repository';
+  }) : _baseUrl = '$protocol://$host/$version/repositories/$project/$repository';
 
   Future createPullRequest({@required String branch, @required String title, bool closeBranch: false}) async {
-    var url = '$baseUrl/pullrequests';
+    var url = '$_baseUrl/pullrequests';
     output.showStartStep('POST', [url]);
     var response = await _client.post(
       url,
@@ -35,20 +33,18 @@ class Bitbucket {
       output.showMessage('Created pull request for branch "$branch"\n');
     } else {
       output
-          .showError('Error creating pull request for branch "$branch": HTTP ${response.statusCode}\n${response.body}');
+          .showError('Error creating pull request for branch "$branch": HTTP ${response.statusCode}');
       throw TaskFailed();
     }
   }
 
-  Map<String, Object> _createPullRequestBody(String title, String branch, bool closeBranch) {
-    return {
-      'title': title,
-      'source': {
-        'branch': {
-          'name': branch,
+  Map<String, dynamic> _createPullRequestBody(String title, String branch, bool closeBranch) => {
+        'title': title,
+        'source': {
+          'branch': {
+            'name': branch,
+          },
         },
-      },
-      'close_source_branch': closeBranch,
-    };
-  }
+        'close_source_branch': closeBranch,
+      };
 }
