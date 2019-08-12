@@ -12,3 +12,4 @@ Done
 * [X] Get Jira issue
 * [X] Create Bitbucket pull request
 * [X] Transition Jira issue
+* [X] Git checkout

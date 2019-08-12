@@ -23,7 +23,7 @@ class GitRepo {
     await Shell.execute('git', args);
   }
 
-  Future cloneOrPull({String into, bool clean = false}) async {
+  Future cloneOrPull({String into = '', bool clean = false}) async {
     if (into == null) {
       into = params['jobName'];
       if (into == null) {
@@ -36,6 +36,7 @@ class GitRepo {
       await this._clean(directory);
     }
     if (await directory.exists()) {
+      await checkout(into: into);
       await pull(into: into);
     } else {
       await clone(into: into);
@@ -43,9 +44,36 @@ class GitRepo {
     Context.changeDir(into);
   }
 
-  Future pull({String into}) async {
-    await Shell.execute('git', ['checkout', _branch], workingDirectory: '${Shell.workingDirectory}/$into');
-    await Shell.execute('git', ['pull', 'origin', _branch], workingDirectory: '${Shell.workingDirectory}/$into');
+  Future pull({String branch, String into = ''}) async {
+    if (branch == null) {
+      branch = _branch;
+    }
+    await Shell.execute('git', ['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
+  }
+
+  Future checkout({String branch, String into = '', bool createBranch = false}) async {
+    if (createBranch) {
+      try {
+        await _checkout(branch, into, false);
+      } on TaskFailed {
+        output.showMessage('Branch $branch does not exist yet, creating ...\n');
+        await _checkout(branch, into, createBranch);
+      }
+    } else {
+      await _checkout(branch, into, createBranch);
+    }
+  }
+
+  Future _checkout(String branch, String into, bool createBranch) async {
+    if (branch == null) {
+      branch = _branch;
+    }
+    var params = ['checkout'];
+    if (createBranch) {
+      params.add('-b');
+    }
+    params.add(branch);
+    await Shell.execute('git', params, workingDirectory: '${Shell.workingDirectory}/$into');
   }
 
   String _extractDirFromUri() {

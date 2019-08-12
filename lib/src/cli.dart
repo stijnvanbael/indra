@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:indra/indra.dart';
@@ -24,4 +25,12 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
   }
   Shell.rootDirectory = Shell.workingDirectory;
   return params;
+}
+
+String requiredParam(Map<String, String> params, String name) {
+  if (!params.containsKey(name)) {
+    output.showError('Missing required param $name');
+    exit(-1);
+  }
+  return params[name];
 }
