@@ -20,6 +20,7 @@ class Context {
 class Shell {
   static String workingDirectory = Directory.current.path;
   static String rootDirectory = Directory.current.path;
+  static bool running = false;
 
   static Future<String> execute(
     String executable,
@@ -27,6 +28,11 @@ class Shell {
     String workingDirectory,
     bool reportFailure: true,
   }) async {
+    if (running) {
+      output.showError('Another task is still running, did you forget to put "await" in front of your task?');
+      throw new TaskFailed();
+    }
+    running = true;
     output.showStartStep(executable, args);
     var processOutput = StringBuffer();
     var process = await Process.start(
@@ -46,6 +52,7 @@ class Shell {
       }
       throw new TaskFailed(processOutput.toString());
     }
+    running = false;
     return processOutput.toString();
   }
 }
