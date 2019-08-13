@@ -5,6 +5,7 @@ import 'package:indra/indra.dart';
 String clean = 'clean';
 String test = 'test';
 String package = 'package';
+String verify = 'verify';
 String install = 'install';
 
 class Maven {
