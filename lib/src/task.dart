@@ -46,13 +46,13 @@ class Shell {
         onDone: () async => completer.complete(await process.exitCode));
     output.showProcessOutput(stdout, process.stderr);
     var code = await completer.future;
+    running = false;
     if (code != 0) {
       if (reportFailure) {
         output.showError('Process "$executable" exited with code $code');
       }
       throw new TaskFailed(processOutput.toString());
     }
-    running = false;
     return processOutput.toString();
   }
 }
