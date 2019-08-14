@@ -24,8 +24,8 @@ abstract class TextOutput implements Output {
 
   @override
   void showStartStep(String executable, List<String> args) {
-    writeLine(cyan('\$ $executable ${args.join(' ')}'));
     writeLine('');
+    writeLine(cyan('\$ $executable ${args.join(' ')}'));
   }
 
   @override
