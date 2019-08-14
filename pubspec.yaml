@@ -1,6 +1,8 @@
 name: indra
-version: 0.0.1
-description: Hackable integration and automation engine
+version: 0.0.2
+description: Scriptable integration and automation engine
+author: Stijn Van Bael <stijn.van.bael@appify.be>
+homepage: https://github.com/stijnvanbael/indra
 
 environment:
   sdk: '>=2.1.0 <3.0.0'
