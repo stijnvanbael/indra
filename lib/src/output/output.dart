@@ -26,4 +26,6 @@ abstract class Output {
   void showWorkerFinished(String workerName, String jobName, int number, String status);
 
   void showMessage(String message);
+
+  String readInput();
 }

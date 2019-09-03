@@ -26,10 +26,33 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
   return params;
 }
 
+Runner bootstrap(SendPort outputPort, List<String> args, {Map<String, String> defaultParams = const {}}) =>
+    Runner(setup(outputPort, args, defaultParams: defaultParams));
+
 String requiredParam(Map<String, String> params, String name) {
   if (!params.containsKey(name) || params[name].isEmpty) {
     output.showError('Missing required param "$name"');
     throw new TaskFailed();
   }
   return params[name];
+}
+
+typedef void Script(Map<String, String> params);
+
+class Runner {
+  Map<String, String> _params;
+
+  Runner(this._params);
+
+  run(Script script) async {
+    try {
+      await script(_params);
+    } on TaskFailed catch (e) {
+      output.showError(e.message);
+      throw e;
+    } catch (e, stacktrace) {
+      output.showError(e.toString(), stacktrace.toString());
+      throw e;
+    }
+  }
 }

@@ -27,6 +27,7 @@ class Shell {
     List<String> args, {
     String workingDirectory,
     bool reportFailure: true,
+    bool showOutput: true,
   }) async {
     if (running) {
       output.showError('Another task is still running, did you forget to put "await" in front of your task?');
@@ -44,7 +45,9 @@ class Shell {
     var stdout = process.stdout.asBroadcastStream();
     stdout.listen((e) => processOutput.write(new String.fromCharCodes(e)),
         onDone: () async => completer.complete(await process.exitCode));
-    output.showProcessOutput(stdout, process.stderr);
+    if(showOutput) {
+      output.showProcessOutput(stdout, process.stderr);
+    }
     var code = await completer.future;
     running = false;
     if (code != 0) {

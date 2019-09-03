@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:indra/src/output/text_output.dart';
@@ -16,5 +17,10 @@ class ConsoleOutput extends TextOutput {
   @override
   writeLine(String line) {
     print(line);
+  }
+
+  @override
+  String readInput() {
+    return stdin.readLineSync(encoding: Encoding.getByName('utf-8'));
   }
 }
