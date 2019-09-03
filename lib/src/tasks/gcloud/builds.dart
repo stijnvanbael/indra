@@ -55,6 +55,8 @@ class Triggers {
       throw TaskFailed('Trigger "$id" not found in project "${gcloud.project}"');
     } else if (response.statusCode >= 400) {
       throw TaskFailed('Failed to update trigger "$id": ${response.body}');
+    } else {
+      output.showMessage('Updated build trigger $id\n');
     }
   }
 
@@ -69,11 +71,13 @@ class Triggers {
     var url = '$_baseUrl/$id:run';
     output.showStartStep('POST', [url]);
     var response = await _client.post(url, headers: headers, body: jsonEncode({'branchName': branchName}));
-    return jsonDecode(response.body);
     if (response.statusCode == 404) {
       throw TaskFailed('Trigger "$id" not found in project "${gcloud.project}"');
     } else if (response.statusCode >= 400) {
       throw TaskFailed('Failed to run trigger "$id": ${response.body}');
+    } else {
+      output.showMessage('Build trigger $id started\n');
+      return jsonDecode(response.body);
     }
   }
 }

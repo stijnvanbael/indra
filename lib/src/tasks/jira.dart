@@ -46,8 +46,7 @@ class Jira {
     if (response.statusCode == 204) {
       output.showMessage('Transitioned issue "$issueKey"\n');
     } else {
-      output
-          .showError('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
+      output.showError('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
       throw TaskFailed();
     }
   }
