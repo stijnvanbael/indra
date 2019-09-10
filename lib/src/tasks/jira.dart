@@ -27,8 +27,7 @@ class Jira {
     } else if (response.statusCode == 404) {
       return null;
     } else {
-      output.showError('Error getting issue with key "$issueKey": HTTP ${response.statusCode}');
-      throw TaskFailed();
+      throw TaskFailed('Error getting issue with key "$issueKey": HTTP ${response.statusCode}');
     }
   }
 
@@ -46,8 +45,7 @@ class Jira {
     if (response.statusCode == 204) {
       output.showMessage('Transitioned issue "$issueKey"\n');
     } else {
-      output.showError('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
-      throw TaskFailed();
+      throw TaskFailed('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
     }
   }
 
@@ -59,13 +57,16 @@ class Jira {
 class JiraIssue {
   final String summary;
   final String key;
+  final String type;
 
   JiraIssue({
     this.key,
     this.summary,
+    this.type,
   });
 
   JiraIssue.fromJson(Map<String, dynamic> json)
       : key = json['key'],
-        summary = json['fields']['summary'];
+        summary = json['fields']['summary'],
+        type = json['fields']['issuetype']['name'];
 }

@@ -30,8 +30,7 @@ class Shell {
     bool showOutput: true,
   }) async {
     if (running) {
-      output.showError('Another task is still running, did you forget to put "await" in front of your task?');
-      throw new TaskFailed();
+      throw new TaskFailed('Another task is still running, did you forget to put "await" in front of your task?');
     }
     running = true;
     output.showStartStep(executable, args);

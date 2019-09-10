@@ -54,17 +54,17 @@ class GitRepo {
   Future checkout({String branch, String into = '', bool createBranch = false}) async {
     if (createBranch) {
       try {
-        await _checkout(branch, into, false);
+        await _checkout(branch, into, createBranch: false, reportFailure: false);
       } on TaskFailed {
         output.showMessage('Branch $branch does not exist yet, creating ...\n');
-        await _checkout(branch, into, true);
+        await _checkout(branch, into, createBranch: true);
       }
     } else {
-      await _checkout(branch, into, createBranch);
+      await _checkout(branch, into, createBranch: false);
     }
   }
 
-  Future _checkout(String branch, String into, bool createBranch) async {
+  Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
     if (branch == null) {
       branch = _branch;
     }
@@ -73,7 +73,8 @@ class GitRepo {
       params.add('-b');
     }
     params.add(branch);
-    await Shell.execute('git', params, workingDirectory: '${Shell.workingDirectory}/$into');
+    await Shell.execute('git', params,
+        workingDirectory: '${Shell.workingDirectory}/$into', reportFailure: reportFailure);
   }
 
   String _extractDirFromUri() {
@@ -115,7 +116,16 @@ class GitRepo {
     return branch;
   }
 
-  Future rebase({@required String branch}) => Shell.execute('git', ['rebase', branch]);
+  Future rebase({String branch, bool abort = false}) {
+    var params = ['rebase'];
+    if (branch != null) {
+      params.add(branch);
+    }
+    if (abort) {
+      params.add('--abort');
+    }
+    return Shell.execute('git', params);
+  }
 
   Future reset({bool hard: false}) async {
     var params = ['reset'];
