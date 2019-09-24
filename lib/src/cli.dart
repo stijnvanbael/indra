@@ -9,13 +9,21 @@ Map<String, String> params;
 
 Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, String> defaultParams = const {}}) {
   output = outputPort != null ? new IsolateOutput(outputPort) : new ConsoleOutput();
+  var previousParam;
   params = defaultParams;
   args.forEach((a) {
     var keyValue = a.split('=');
     if (keyValue.length != 2) {
-      throw new ArgumentError('$a\nUsage: parameter=value');
+      if (previousParam == null) {
+        output.showError('$a\nUsage: parameter=value');
+        throw new ArgumentError('$a\nUsage: parameter=value');
+      } else {
+        params[previousParam] = '${params[previousParam]} ${keyValue[0]}';
+      }
+    } else {
+      previousParam = keyValue[0];
+      params[keyValue[0]] = keyValue[1];
     }
-    params[keyValue[0]] = keyValue[1];
   });
   if (params.containsKey('workingDir')) {
     Context.changeDir(params['workingDir']);
@@ -23,6 +31,9 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
     Context.changeDir(Shell.workingDirectory);
   }
   Shell.rootDirectory = Shell.workingDirectory;
+  if(params.isNotEmpty) {
+    output.showParameters(params);
+  }
   return params;
 }
 

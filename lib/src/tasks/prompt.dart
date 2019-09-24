@@ -15,6 +15,16 @@ class Prompt {
     return values[choice - 1];
   }
 
+  static confirm(String message, {bool defaultChoice: false}) {
+    output.showMessage('$message (${defaultChoice ? 'Y' : 'y'}/${!defaultChoice ? 'N' : 'n'}): ');
+    return _promptConfirm(defaultChoice);
+  }
+
+  static input(String message, {bool required: false}) {
+    output.showMessage('$message: ');
+    return _promptInput(required);
+  }
+
   static int _selectMenu(String message, List values, Formatter format, defaultValue) {
     output.showMessage('\n$message:\n\n');
     var index = 1;
@@ -45,11 +55,6 @@ class Prompt {
     return choice;
   }
 
-  static confirm(String message, {bool defaultChoice: false}) {
-    output.showMessage('$message (${defaultChoice ? 'Y' : 'y'}/${!defaultChoice ? 'N' : 'n'}): ');
-    return _promptConfirm(defaultChoice);
-  }
-
   static bool _promptConfirm(bool defaultChoice) {
     var line = output.readInput().trim().toLowerCase();
     var choice = null;
@@ -65,5 +70,15 @@ class Prompt {
       choice = _promptConfirm(defaultChoice);
     }
     return choice;
+  }
+
+  static String _promptInput(bool required) {
+    var line = output.readInput().trim().toLowerCase();
+    var input = null;
+    if (line == "" && required) {
+      output.showMessage('Input is required, please try again: ');
+      input = _promptConfirm(required);
+    }
+    return input;
   }
 }

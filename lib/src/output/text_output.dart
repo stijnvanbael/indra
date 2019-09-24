@@ -45,9 +45,14 @@ abstract class TextOutput implements Output {
   }
 
   @override
-  void showStartScript(String script, [List<String> args]) {
-    writeLine(green('\nRunning job $script${args.isNotEmpty ? ' with parameters:\n' : ''}'));
-    args.forEach((a) => writeLine(white('  $a')));
+  void showStartScript(String script) {
+    writeLine(green('\nRunning job $script\n'));
+  }
+
+  @override
+  void showParameters(Map<String, dynamic> params) {
+    writeLine(green('Parameters:\n'));
+    params.entries.forEach((p) => writeLine(white('${p.key} = ${p.value}')));
     writeLine('');
   }
 

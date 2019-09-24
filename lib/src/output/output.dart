@@ -9,7 +9,9 @@ abstract class Output {
 
   void showStartRunner();
 
-  void showStartScript(String script, [List<String> args]);
+  void showStartScript(String script);
+
+  void showParameters(Map<String, dynamic> params);
 
   void showEndScript(String script);
 

@@ -32,7 +32,7 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
     print('Failed to run script:\n $message');
     exit(-1);
   }
-  output.showStartScript(script, args);
+  output.showStartScript(script);
   _configureOutput(outputPort, control);
   _configureErrorHandler(errorPort, control);
   await exitPort.listen((m) {

@@ -36,7 +36,9 @@ class Jira {
     output.showStartStep('POST', [url]);
     var response = await _client.post(
       url,
-      body: jsonEncode(_createTransitionBody(transitionId)),
+      body: jsonEncode({
+        'transition': {'id': '$transitionId'}
+      }),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Basic $authentication',
@@ -49,9 +51,23 @@ class Jira {
     }
   }
 
-  Map<String, dynamic> _createTransitionBody(int transitionId) => {
-        'transition': {'id': '$transitionId'}
-      };
+  Future commentIssue(String issueKey, String comment) async {
+    var url = '$_baseUrl/issue/$issueKey/comment';
+    output.showStartStep('POST', [url]);
+    var response = await _client.post(
+      url,
+      body: jsonEncode({'body': comment}),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic $authentication',
+      },
+    );
+    if (response.statusCode == 201) {
+      output.showMessage('Commented issue "$issueKey"\n');
+    } else {
+      throw TaskFailed('Error commenting issue "$issueKey": HTTP ${response.statusCode}');
+    }
+  }
 }
 
 class JiraIssue {
