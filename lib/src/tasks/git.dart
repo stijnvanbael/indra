@@ -44,11 +44,12 @@ class GitRepo {
     Context.changeDir(into);
   }
 
-  Future pull({String branch, String into = ''}) async {
+  Future<bool> pull({String branch, String into = ''}) async {
     if (branch == null) {
       branch = _branch;
     }
-    await _git(['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
+    var output = await _git(['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
+    return output.startsWith('Updating');
   }
 
   Future checkout({String branch, String into = '', bool createBranch = false}) async {

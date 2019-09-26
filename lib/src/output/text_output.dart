@@ -62,8 +62,8 @@ abstract class TextOutput implements Output {
   }
 
   @override
-  void showJobFailed() {
-    writeLine(red('JOB FAILED'));
+  void showJobFailed(String error) {
+    writeLine(red('JOB FAILED\n$error'));
   }
 
   @override

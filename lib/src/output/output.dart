@@ -17,7 +17,7 @@ abstract class Output {
 
   void showError(String message, [String stackTrace]);
 
-  void showJobFailed();
+  void showJobFailed(String error);
 
   void showJobQueued(String jobName, int number);
 

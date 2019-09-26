@@ -31,7 +31,7 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
     Context.changeDir(Shell.workingDirectory);
   }
   Shell.rootDirectory = Shell.workingDirectory;
-  if(params.isNotEmpty) {
+  if (params.isNotEmpty) {
     output.showParameters(params);
   }
   return params;
@@ -67,3 +67,5 @@ class Runner {
     }
   }
 }
+
+class RestartRequested {}
