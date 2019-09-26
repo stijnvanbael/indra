@@ -16,7 +16,6 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
   var exitPort = ReceivePort();
   var errorPort = ReceivePort();
   var outputPort = ReceivePort();
-  output.showStartRunner();
   args = _addParams(script, args);
   try {
     control.isolate = await Isolate.spawnUri(

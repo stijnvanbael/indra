@@ -1,27 +1,30 @@
+import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
 
 typedef String Formatter(dynamic value);
 
+var blue = new AnsiPen()
+  ..blue(bold: true);
+
 String toStringFormat(dynamic value) => value != null ? value.toString() : 'null';
 
 class Prompt {
-  static T select<T>(
-    String message,
-    List<T> values, {
-    T defaultValue = null,
-    Formatter format: toStringFormat,
-  }) {
+  static T select<T>(String message,
+      List<T> values, {
+        T defaultValue = null,
+        Formatter format: toStringFormat,
+      }) {
     int choice = _selectMenu(message, values, format, defaultValue);
     return values[choice - 1];
   }
 
   static confirm(String message, {bool defaultChoice: false}) {
-    output.showMessage('$message (${defaultChoice ? 'Y' : 'y'}/${!defaultChoice ? 'N' : 'n'}): ');
+    output.showMessage(blue('$message (${defaultChoice ? 'Y' : 'y'}/${!defaultChoice ? 'N' : 'n'}): '));
     return _promptConfirm(defaultChoice);
   }
 
   static input(String message, {bool required: false}) {
-    output.showMessage('$message: ');
+    output.showMessage(blue('$message: '));
     return _promptInput(required);
   }
 
@@ -29,11 +32,11 @@ class Prompt {
     output.showMessage('\n$message:\n\n');
     var index = 1;
     values.forEach((value) {
-      print('$index.  ${format(value)}');
-      index++;
+    print('$index.  ${format(value)}');
+    index++;
     });
     var defaultChoice = defaultValue != null ? values.indexOf(defaultValue) + 1 : null;
-    output.showMessage('\nYour choice${defaultChoice != null ? ' (default: $defaultChoice)' : ''}: ');
+    output.showMessage(blue('\nYour choice${defaultChoice != null ? ' (default: $defaultChoice)' : ''}: '));
     var choice = _promptChoice(values, defaultChoice);
     return choice;
   }

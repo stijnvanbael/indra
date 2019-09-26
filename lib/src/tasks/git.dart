@@ -20,7 +20,7 @@ class GitRepo {
     if (_branch != null) args.addAll(['-b', _branch]);
     args.add(_uri);
     if (into != null) args.add(into);
-    await Shell.execute('git', args);
+    await _git(args);
   }
 
   Future cloneOrPull({String into = '', bool clean = false}) async {
@@ -48,7 +48,7 @@ class GitRepo {
     if (branch == null) {
       branch = _branch;
     }
-    await Shell.execute('git', ['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
+    await _git(['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
   }
 
   Future checkout({String branch, String into = '', bool createBranch = false}) async {
@@ -64,28 +64,7 @@ class GitRepo {
     }
   }
 
-  Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
-    if (branch == null) {
-      branch = _branch;
-    }
-    var params = ['checkout'];
-    if (createBranch) {
-      params.add('-b');
-    }
-    params.add(branch);
-    await Shell.execute('git', params,
-        workingDirectory: '${Shell.workingDirectory}/$into', reportFailure: reportFailure);
-  }
-
-  String _extractDirFromUri() {
-    var match = _uriPattern.firstMatch(_uri);
-    if (match != null) {
-      return match[1];
-    }
-    return 'build';
-  }
-
-  Future tag(String tag) => Shell.execute('git', ['tag', tag]);
+  Future tag(String tag) => _git(['tag', tag]);
 
   Future push({
     bool tags = false,
@@ -99,11 +78,11 @@ class GitRepo {
     if (branch != null) {
       params.addAll(['-u', remote, branch]);
     }
-    await Shell.execute('git', params);
+    await _git(params);
   }
 
   Future<String> verifyBranch({@required String regex}) async {
-    var branch = await Shell.execute('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+    var branch = await _git(['rev-parse', '--abbrev-ref', 'HEAD']);
     if (branch.contains('\n')) {
       branch = branch.substring(0, branch.indexOf('\n'));
     }
@@ -124,7 +103,7 @@ class GitRepo {
     if (abort) {
       params.add('--abort');
     }
-    return Shell.execute('git', params);
+    return _git(params);
   }
 
   Future reset({bool hard: false}) async {
@@ -132,7 +111,7 @@ class GitRepo {
     if (hard) {
       params.add('--hard');
     }
-    await Shell.execute('git', params);
+    await _git(params);
   }
 
   Future addAndCommit({@required String message, bool allowClean: false}) async {
@@ -140,11 +119,11 @@ class GitRepo {
     await commit(message: message, allowClean: allowClean);
   }
 
-  Future add(String file) => Shell.execute('git', ['add', file]);
+  Future add(String file) => _git(['add', file]);
 
   Future commit({@required String message, bool allowClean: false}) async {
     try {
-      await Shell.execute('git', ['commit', '-m', message], reportFailure: !allowClean);
+      await _git(['commit', '-m', message], reportFailure: !allowClean);
     } on TaskFailed catch (e) {
       if (allowClean) {
         if (!e.message.contains('nothing to commit, working tree clean')) {
@@ -157,10 +136,35 @@ class GitRepo {
     }
   }
 
+  Future status() => _git(['status']);
+
+  Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
+    if (branch == null) {
+      branch = _branch;
+    }
+    var params = ['checkout'];
+    if (createBranch) {
+      params.add('-b');
+    }
+    params.add(branch);
+    await _git(params, workingDirectory: '${Shell.workingDirectory}/$into', reportFailure: reportFailure);
+  }
+
+  String _extractDirFromUri() {
+    var match = _uriPattern.firstMatch(_uri);
+    if (match != null) {
+      return match[1];
+    }
+    return 'build';
+  }
+
   Future _clean(Directory directory) async {
     if (await directory.exists()) {
       output.showMessage(cyan('\$ rm -rf ${directory.path}\n'));
       await directory.delete(recursive: true);
     }
   }
+
+  Future _git(List<String> args, {String workingDirectory, bool reportFailure: true}) =>
+      Shell.execute('git', args, workingDirectory: workingDirectory, reportFailure: reportFailure);
 }
