@@ -136,7 +136,10 @@ class GitRepo {
     }
   }
 
-  Future status() => _git(['status']);
+  Future<List<GitFile>> status({bool showOutput: true}) async {
+    var output = (await _git(['status'], showOutput: showOutput));
+    return output.split('\n').where((line) => line.startsWith('\t')).map(GitFile.parse).toList();
+  }
 
   Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
     if (branch == null) {
@@ -165,6 +168,25 @@ class GitRepo {
     }
   }
 
-  Future _git(List<String> args, {String workingDirectory, bool reportFailure: true}) =>
-      Shell.execute('git', args, workingDirectory: workingDirectory, reportFailure: reportFailure);
+  Future<String> _git(
+    List<String> args, {
+    String workingDirectory,
+    bool reportFailure: true,
+    bool showOutput: true,
+  }) =>
+      Shell.execute('git', args,
+          workingDirectory: workingDirectory, reportFailure: reportFailure, showOutput: showOutput);
+}
+
+class GitFile {
+  final String name;
+  final bool modified;
+
+  GitFile(this.name, this.modified);
+
+  static GitFile parse(String fileLine) {
+    var modified = fileLine.startsWith('\tmodified:');
+    var name = modified ? fileLine.substring('\tmodified:'.length).trim() : fileLine.trim();
+    return new GitFile(name, modified);
+  }
 }

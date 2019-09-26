@@ -38,8 +38,8 @@ class Images {
 }
 
 class Tag {
-  String id;
-  DateTime timestamp;
+  final String id;
+  final DateTime timestamp;
 
   Tag(this.id, this.timestamp);
 
@@ -54,9 +54,9 @@ class Tag {
 }
 
 class Image {
-  String hostname;
-  String project;
-  String name;
+  final String hostname;
+  final String project;
+  final String name;
 
   Image(this.hostname, this.project, this.name);
 
