@@ -9,9 +9,7 @@ import 'package:indra/src/output/output.dart';
 
 Output output = ConsoleOutput();
 
-/**
- * Spawns a new isolate to run the specified script. The returned Future will complete when the script completes.
- */
+/// Spawns a new isolate to run the specified script. The returned Future will complete when the script completes.
 Future runScript(String script, [List<String> args = const [], RunnerControl control]) async {
   var exitPort = ReceivePort();
   var errorPort = ReceivePort();
@@ -36,7 +34,7 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
   _configureErrorHandler(errorPort, control);
   await exitPort.listen((m) {
     if (!control.failed) {
-      if(!control.restart) {
+      if (!control.restart) {
         output.showEndScript(script);
       } else {
         control.reset();
@@ -67,7 +65,7 @@ List<String> _addParams(String script, List<String> args) {
 
 void _configureErrorHandler(ReceivePort errorPort, RunnerControl control) {
   errorPort.listen((e) {
-    var errors = e as List<dynamic>;
+    var errors = e as List<String>;
     if (errors[0].contains('RestartRequested')) {
       control.restart = true;
     } else {
@@ -79,9 +77,9 @@ void _configureErrorHandler(ReceivePort errorPort, RunnerControl control) {
 
 void _configureOutput(ReceivePort outputPort, RunnerControl control) {
   outputPort.listen((message) {
-    output.showMessage(message);
+    output.showMessage(message as String);
     if (control != null) {
-      control.appendOutput(message);
+      control.appendOutput(message as String);
     }
   });
 }

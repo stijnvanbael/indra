@@ -1,42 +1,45 @@
 import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
 
-typedef String Formatter(dynamic value);
+typedef String Formatter<T>(T value);
 
-var blue = new AnsiPen()
-  ..blue(bold: true);
+var blue = new AnsiPen()..blue(bold: true);
+var highlight = new AnsiPen()..gray(level: 1.0)..gray(level: 0.5, bg: true);
 
 String toStringFormat(dynamic value) => value != null ? value.toString() : 'null';
 
 class Prompt {
-  static T select<T>(String message,
-      List<T> values, {
-        T defaultValue = null,
-        Formatter format: toStringFormat,
-      }) {
+  static T select<T>(
+    String message,
+    List<T> values, {
+    T defaultValue = null,
+    String format(T value): toStringFormat,
+  }) {
     int choice = _selectMenu(message, values, format, defaultValue);
     return values[choice - 1];
   }
 
-  static confirm(String message, {bool defaultChoice: false}) {
-    output.showMessage(blue('$message (${defaultChoice ? 'Y' : 'y'}/${!defaultChoice ? 'N' : 'n'}): '));
+  static bool confirm(String message, {bool defaultChoice: false}) {
+    output.showMessage(blue(
+        '$message (${defaultChoice ? highlight('y') : 'y'}/${!defaultChoice ? highlight('n') : 'n'}${blue('): ')}'));
     return _promptConfirm(defaultChoice);
   }
 
-  static input(String message, {bool required: false}) {
+  static String input(String message, {bool required: false}) {
     output.showMessage(blue('$message: '));
     return _promptInput(required);
   }
 
-  static int _selectMenu(String message, List values, Formatter format, defaultValue) {
+  static int _selectMenu<T>(String message, List<T> values, Formatter<T> format, defaultValue) {
     output.showMessage('\n$message:\n\n');
     var index = 1;
     values.forEach((value) {
-    print('$index.  ${format(value)}');
-    index++;
+      print('$index.  ${format(value)}');
+      index++;
     });
     var defaultChoice = defaultValue != null ? values.indexOf(defaultValue) + 1 : null;
-    output.showMessage(blue('\nYour choice${defaultChoice != null ? ' (default: $defaultChoice)' : ''}: '));
+    output.showMessage(
+        blue('\nYour choice${defaultChoice != null ? ' (default: ${highlight(defaultChoice.toString())})' : ''}: '));
     var choice = _promptChoice(values, defaultChoice);
     return choice;
   }
@@ -76,12 +79,22 @@ class Prompt {
   }
 
   static String _promptInput(bool required) {
-    var line = output.readInput().trim().toLowerCase();
-    var input = null;
-    if (line == "" && required) {
+    var input = output.readInput().trim();
+    if (input == "" && required) {
       output.showMessage('Input is required, please try again: ');
-      input = _promptConfirm(required);
+      input = _promptInput(required);
     }
     return input;
   }
+}
+
+class Invokable {
+  final String description;
+  final Function function;
+
+  Invokable(this.description, this.function);
+
+  Future apply() => function();
+
+  String toString() => description;
 }

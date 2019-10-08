@@ -4,14 +4,13 @@ PatternMatcher<I, O> matcher<I, O>() => PatternMatcher([]);
 
 AsyncPatternMatcher<I, O> asyncMatcher<I, O>() => AsyncPatternMatcher([]);
 
-TransformingPredicate<I, T> predicate<I, T>(bool predicate(I input),
-        [T transformer(I input), String description]) =>
+TransformingPredicate<I, T> predicate<I, T>(bool predicate(I input), [T transformer(I input), String description]) =>
     TransformingPredicate<I, T>(predicate, transformer != null ? transformer : identity, description);
 
 T identity<T>(dynamic input) => input as T;
 
 class PatternMatcher<I, O> implements Function {
-  List<_Case> _cases;
+  List<_Case<I, dynamic, O>> _cases;
 
   PatternMatcher(this._cases);
 
@@ -19,15 +18,15 @@ class PatternMatcher<I, O> implements Function {
       when(TransformingPredicate<I, T>((i) => i?.runtimeType == type, identity), function);
 
   PatternMatcher<I, O> when<T>(TransformingPredicate<I, T> predicate, O function(T input)) {
-    List<_Case<dynamic, dynamic, dynamic>> newCases = List.from(_cases);
+    List<_Case<I, T, O>> newCases = List.from(_cases);
     newCases.add(_Case(predicate, function));
     return PatternMatcher(newCases);
   }
 
   PatternMatcher<I, O> when2<T1, T2>(
       TransformingPredicate<I, Pair<T1, T2>> predicate, O function(T1 input1, T2 input2)) {
-    List<_Case<dynamic, dynamic, dynamic>> newCases = List.from(_cases);
-    newCases.add(_Case(predicate, (p) => function(p.a, p.b)));
+    List<_Case<I, Pair<T1, T2>, O>> newCases = List.from(_cases);
+    newCases.add(_Case(predicate, (Pair<T1, T2> p) => function(p.a, p.b)));
     return PatternMatcher(newCases);
   }
 
@@ -55,20 +54,19 @@ class AsyncPatternMatcher<I, O> implements Function {
       when(TransformingPredicate<I, Future<T>>((i) => i?.runtimeType == type, identity), function);
 
   AsyncPatternMatcher<I, O> when<T>(TransformingPredicate<I, Future<T>> predicate, O function(T input)) {
-    List<_Case<I, dynamic, Future<O>>> newCases = List.from(_cases);
-    newCases.add(_Case(predicate, (i) async {
-      i = await (await i);
-      return function(i);
+    List<_Case<I, Future<T>, Future<O>>> newCases = List.from(_cases);
+    newCases.add(_Case(predicate, (Future<T> i) async {
+      return function(await (await i));
     }));
     return AsyncPatternMatcher(newCases);
   }
 
   AsyncPatternMatcher<I, O> when2<T1, T2>(
       TransformingPredicate<I, Future<Pair<T1, T2>>> predicate, O function(T1 input1, T2 input2)) {
-    List<_Case<I, dynamic, Future<O>>> newCases = List.from(_cases);
-    newCases.add(_Case(predicate, (p) async {
-      p = await (await p);
-      return function(p.a, p.b);
+    List<_Case<I, Future<Pair<T1, T2>>, Future<O>>> newCases = List.from(_cases);
+    newCases.add(_Case(predicate, (Future<Pair<T1, T2>> p) async {
+      var p2 = await (await p);
+      return function(p2.a, p2.b);
     }));
     return AsyncPatternMatcher(newCases);
   }
@@ -88,9 +86,12 @@ class AsyncPatternMatcher<I, O> implements Function {
   }
 }
 
+typedef O Transformation<I, O>(I input);
+typedef bool Predicate<I>(I input);
+
 class _Case<I, T, O> {
-  TransformingPredicate<I, T> _transformingPredicate;
-  Function _function;
+  TransformingPredicate<I, FutureOr<T>> _transformingPredicate;
+  Transformation<T, O> _function;
 
   _Case(this._transformingPredicate, this._function);
 
@@ -112,18 +113,18 @@ class Pair<A, B> {
 }
 
 class TransformingPredicate<I, T> {
-  Function _predicate;
-  Function _transformer;
+  Predicate<I> _predicate;
+  Transformation<I, FutureOr<T>> _transformer;
   String _description;
 
-  TransformingPredicate(bool predicate(I input), T transformer(I input), [String description])
+  TransformingPredicate(Predicate<I> predicate, Transformation<I, FutureOr<T>> transformer, [String description])
       : this._predicate = predicate,
         this._transformer = transformer,
         this._description = description;
 
   bool test(I input) => _predicate(input);
 
-  Future<T> transform(I input) async {
+  FutureOr<T> transform(I input) async {
     while (input is Future) {
       input = await input;
     }

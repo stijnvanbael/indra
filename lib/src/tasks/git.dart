@@ -137,9 +137,17 @@ class GitRepo {
     }
   }
 
-  Future<List<GitFile>> status({bool showOutput: true}) async {
+  Future<List<Change>> status({bool showOutput: true}) async {
     var output = (await _git(['status'], showOutput: showOutput));
-    return output.split('\n').where((line) => line.startsWith('\t')).map(GitFile.parse).toList();
+    return output.split('\n').where((line) => line.startsWith('\t')).map(Change.parse).toList();
+  }
+
+  Future stash({bool apply: false}) {
+    var args = ['stash'];
+    if (apply) {
+      args.add('apply');
+    }
+    return _git(args);
   }
 
   Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
@@ -179,15 +187,19 @@ class GitRepo {
           workingDirectory: workingDirectory, reportFailure: reportFailure, showOutput: showOutput);
 }
 
-class GitFile {
-  final String name;
-  final bool modified;
+class Change {
+  final String file;
+  final ChangeStatus status;
 
-  GitFile(this.name, this.modified);
+  Change(this.file, this.status);
 
-  static GitFile parse(String fileLine) {
+  static Change parse(String fileLine) {
     var modified = fileLine.startsWith('\tmodified:');
-    var name = modified ? fileLine.substring('\tmodified:'.length).trim() : fileLine.trim();
-    return new GitFile(name, modified);
+    var deleted = fileLine.startsWith('\tdeleted:');
+    var added = fileLine.startsWith('\tnew file:');
+    var name = modified || deleted || added ? fileLine.substring(fileLine.indexOf(':') + 1).trim() : fileLine.trim();
+    return new Change(name, added ? ChangeStatus.added : (deleted ? ChangeStatus.deleted : ChangeStatus.modified));
   }
 }
+
+enum ChangeStatus { added, modified, deleted }

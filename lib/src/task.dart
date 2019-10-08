@@ -6,13 +6,13 @@ import 'dart:io';
 import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
 
-var cyan = new AnsiPen()..cyan(bold: true);
+var cyan = AnsiPen()..cyan(bold: true);
 
 class Context {
   static void changeDir(String dir) {
     if (Shell.workingDirectory != dir) {
       Shell.workingDirectory = dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
-      output.showMessage(cyan('\$ cd ${Shell.workingDirectory}\n'));
+      output.showMessage('${cyan('\$ cd ${Shell.workingDirectory}\n')}');
     }
   }
 }
@@ -30,7 +30,7 @@ class Shell {
     bool showOutput: true,
   }) async {
     if (running) {
-      throw new TaskFailed('Another task is still running, did you forget to put "await" in front of your task?');
+      throw TaskFailed('Another task is still running, did you forget to put "await" in front of your task?');
     }
     running = true;
     output.showStartStep(executable, args);
@@ -53,7 +53,7 @@ class Shell {
       if (reportFailure) {
         output.showError('Process "$executable" exited with code $code');
       }
-      throw new TaskFailed(processOutput.toString());
+      throw TaskFailed(processOutput.toString());
     }
     return processOutput.toString();
   }

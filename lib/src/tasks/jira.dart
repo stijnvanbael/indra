@@ -31,13 +31,13 @@ class Jira {
     }
   }
 
-  Future transitionIssue(String issueKey, {@required int transitionId}) async {
+  Future transitionIssue(String issueKey, {@required Transition transition}) async {
     var url = '$_baseUrl/issue/$issueKey/transitions';
     output.showStartStep('POST', [url]);
     var response = await _client.post(
       url,
       body: jsonEncode({
-        'transition': {'id': '$transitionId'}
+        'transition': {'id': '${transition.id}'}
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ class Jira {
       },
     );
     if (response.statusCode == 204) {
-      output.showMessage('Transitioned issue "$issueKey"\n');
+      output.showMessage('Transitioned issue "$issueKey" -> ${transition.name}\n');
     } else {
       throw TaskFailed('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
     }
@@ -68,6 +68,16 @@ class Jira {
       throw TaskFailed('Error commenting issue "$issueKey": HTTP ${response.statusCode}');
     }
   }
+}
+
+class Transition {
+  final int id;
+  final String name;
+
+  Transition(this.id, this.name);
+
+  @override
+  String toString() => name;
 }
 
 class JiraIssue {

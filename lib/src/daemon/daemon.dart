@@ -9,9 +9,9 @@ import 'package:indra/src/util/string_pattern.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-var gray = new AnsiPen()..gray();
-var red = new AnsiPen()..red(bold: true);
-var boldGreen = new AnsiPen()..green(bold: true);
+var gray = AnsiPen()..gray();
+var red = AnsiPen()..red(bold: true);
+var boldGreen = AnsiPen()..green(bold: true);
 
 class Daemon {
   static final contentType = 'Content-Type';
@@ -51,13 +51,13 @@ class Daemon {
           _matchRequest('DELETE', '/jobs/:name/:number'),
           (headers, body) => _cancel(headers['name'], headers['number']),
         )
-        .otherwise((r) => new Response.notFound('Not found'));
+        .otherwise((r) => Response.notFound('Not found'));
   }
 
   Future run() async {
     var handler = const Pipeline().addMiddleware(logRequests()).addHandler(_handleRequest);
-    _workerPool = new WorkerPool(numberOfWorkers, workingDir: workingDir);
-    _scriptRepository = new ScriptRepository(workingDir);
+    _workerPool = WorkerPool(numberOfWorkers, workingDir: workingDir);
+    _scriptRepository = ScriptRepository(workingDir);
     try {
       await serve(handler, host, port);
       print(gray('Indra daemon started, listening on ') + boldGreen('$host:$port'));
@@ -73,20 +73,20 @@ class Daemon {
     var argumentsAsList = arguments.keys.map((k) => '$k=${arguments[k]}').toList();
     var script = _scriptRepository.getScript(scriptName);
     _workerPool.schedule(script, argumentsAsList);
-    return new Response.ok('OK');
+    return Response.ok('OK');
   }
 
   Response _jobs() {
     var jobsJson = json.encode(_workerPool.jobs.map((j) => j.toJson()).toList());
-    return new Response.ok(jobsJson, headers: {contentType: applicationJson});
+    return Response.ok(jobsJson, headers: {contentType: applicationJson});
   }
 
   Response _output(String jobName, String number) {
     var job = _workerPool.job('$jobName#$number');
     if (job == null) {
-      return new Response.notFound(null);
+      return Response.notFound(null);
     }
-    return new Response.ok(job.output.toString(), headers: {
+    return Response.ok(job.output.toString(), headers: {
       contentType: textPlain,
       characterEncoding: utf8Encoding,
     });
@@ -95,22 +95,22 @@ class Daemon {
   Response _cancel(String jobName, String number) {
     var job = _workerPool.cancel('$jobName#$number');
     if (job == null) {
-      return new Response.notFound(null);
+      return Response.notFound(null);
     }
-    return new Response.ok('OK');
+    return Response.ok('OK');
   }
 
   static TransformingPredicate<Request, Future<Pair<Map, String>>> _matchRequest(String method, String pathExpression) {
-    StringPattern pathPattern = new StringPattern(pathExpression);
+    StringPattern pathPattern = StringPattern(pathExpression);
     return predicate(
       (Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
-      (Request request) async => new Pair(_extractHeaders(request, pathPattern), await request.readAsString()),
+      (Request request) async => Pair(_extractHeaders(request, pathPattern), await request.readAsString()),
       '$method $pathExpression',
     );
   }
 
   static Map<String, String> _extractHeaders(Request request, StringPattern pathPattern) {
-    var headers = new Map<String, String>.from(request.headers);
+    var headers = Map<String, String>.from(request.headers);
     var pathParams = pathPattern.parse(request.requestedUri.path);
     pathParams.forEach((k, v) => headers[k] = v);
     return headers;
