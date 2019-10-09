@@ -34,9 +34,9 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
   _configureErrorHandler(errorPort, control);
   await exitPort.listen((m) {
     if (!control.failed) {
-      if (!control.restart) {
+      if (!control.restart && !control.aborted) {
         output.showEndScript(script);
-      } else {
+      } else if (control.restart) {
         control.reset();
         runScript(script, args, control);
       }
@@ -65,9 +65,12 @@ List<String> _addParams(String script, List<String> args) {
 
 void _configureErrorHandler(ReceivePort errorPort, RunnerControl control) {
   errorPort.listen((e) {
-    var errors = e as List<String>;
-    if (errors[0].contains('RestartRequested')) {
+    var errors = e as List<dynamic>;
+    var firstError = (errors.first as String);
+    if (firstError.contains('RestartRequested')) {
       control.restart = true;
+    } else if (firstError.contains('Aborted')) {
+      control.aborted = true;
     } else {
       control.failed = true;
       control.error = errors.join('\n');
@@ -93,6 +96,7 @@ class RunnerControl {
 
   bool failed = false;
   bool restart = false;
+  bool aborted = false;
   String error;
 
   appendOutput(String message) => _output.add(message);
@@ -108,6 +112,7 @@ class RunnerControl {
   void reset() {
     failed = false;
     restart = false;
+    aborted = false;
     error = null;
   }
 }

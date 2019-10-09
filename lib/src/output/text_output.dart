@@ -1,13 +1,6 @@
 import 'dart:async';
 
-import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/output/output.dart';
-
-var cyan = new AnsiPen()..cyan(bold: true);
-var green = new AnsiPen()..green(bold: true);
-var yellow = new AnsiPen()..yellow(bold: true);
-var red = new AnsiPen()..red(bold: true);
-var white = new AnsiPen()..rgb(r: 1.0, g: 1.0, b: 1.0);
 
 abstract class TextOutput implements Output {
   writeLine(String line);
@@ -18,8 +11,8 @@ abstract class TextOutput implements Output {
 
   @override
   void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr) {
-    stdout.listen((e) => write(new String.fromCharCodes(e)));
-    stderr.listen((e) => writeError(new String.fromCharCodes(e)));
+    stdout.listen((e) => write(String.fromCharCodes(e)));
+    stderr.listen((e) => writeError(String.fromCharCodes(e)));
   }
 
   @override
@@ -58,7 +51,7 @@ abstract class TextOutput implements Output {
 
   @override
   void showError(String message, [String stackTrace = '']) {
-    writeError(red('Error: $message\n$stackTrace\n'));
+    writeError(red('$message\n$stackTrace\n'));
   }
 
   @override

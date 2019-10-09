@@ -12,8 +12,8 @@ class Jira {
   Jira(
     String host, {
     @required this.authentication,
-    String protocol: 'https',
-    int version: 3,
+    String protocol = 'https',
+    int version = 3,
   }) : _baseUrl = '$protocol://$host/rest/api/$version';
 
   Future<JiraIssue> getIssue(String issueKey) async {
@@ -23,7 +23,7 @@ class Jira {
       'Authorization': 'Basic $authentication',
     });
     if (response.statusCode == 200) {
-      return JiraIssue.fromJson(jsonDecode(response.body));
+      return JiraIssue.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else if (response.statusCode == 404) {
       return null;
     } else {
@@ -84,15 +84,18 @@ class JiraIssue {
   final String summary;
   final String key;
   final String type;
+  final String status;
 
   JiraIssue({
     this.key,
     this.summary,
     this.type,
+    this.status,
   });
 
   JiraIssue.fromJson(Map<String, dynamic> json)
-      : key = json['key'],
-        summary = json['fields']['summary'],
-        type = json['fields']['issuetype']['name'];
+      : key = json['key'] as String,
+        summary = json['fields']['summary'] as String,
+        type = json['fields']['issuetype']['name'] as String,
+        status = json['fields']['status']['name'] as String;
 }

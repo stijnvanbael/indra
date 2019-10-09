@@ -3,14 +3,15 @@ import 'dart:io';
 
 import 'package:indra/indra.dart';
 import 'package:indra/src/cli.dart';
+import 'package:indra/src/output/output.dart';
 import 'package:meta/meta.dart';
 
 class GitRepo {
   String _uri;
   String _branch;
-  final RegExp _uriPattern = new RegExp(r'.+?([^/]+)\.git');
+  final RegExp _uriPattern = RegExp(r'.+?([^/]+)\.git');
 
-  GitRepo(String uri, {String branch: 'master'}) {
+  GitRepo(String uri, {String branch = 'master'}) {
     _uri = uri;
     _branch = branch;
   }
@@ -31,7 +32,7 @@ class GitRepo {
       }
     }
     Context.changeDir(Shell.rootDirectory);
-    var directory = new Directory('${Shell.workingDirectory}/$into');
+    var directory = Directory('${Shell.workingDirectory}/$into');
     if (clean) {
       await this._clean(directory);
     }
@@ -69,7 +70,7 @@ class GitRepo {
 
   Future push({
     bool tags = false,
-    String remote: 'origin',
+    String remote = 'origin',
     String branch,
   }) async {
     var params = ['push'];
@@ -107,7 +108,7 @@ class GitRepo {
     return _git(params);
   }
 
-  Future reset({bool hard: false}) async {
+  Future reset({bool hard = false}) async {
     var params = ['reset'];
     if (hard) {
       params.add('--hard');
@@ -115,34 +116,34 @@ class GitRepo {
     await _git(params);
   }
 
-  Future addAndCommit({@required String message, bool allowClean: false}) async {
+  Future addAndCommit({@required String message, bool allowClean = false}) async {
     await add('.');
     await commit(message: message, allowClean: allowClean);
   }
 
   Future add(String file) => _git(['add', file]);
 
-  Future commit({@required String message, bool allowClean: false}) async {
+  Future commit({@required String message, bool allowClean = false}) async {
     try {
       await _git(['commit', '-m', message], reportFailure: !allowClean);
     } on TaskFailed catch (e) {
       if (allowClean) {
         if (!e.message.contains('nothing to commit, working tree clean')) {
           output.showError('Process "git" failed');
-          throw e;
+          rethrow;
         }
       } else {
-        throw e;
+        rethrow;
       }
     }
   }
 
-  Future<List<Change>> status({bool showOutput: true}) async {
+  Future<List<Change>> status({bool showOutput = true}) async {
     var output = (await _git(['status'], showOutput: showOutput));
     return output.split('\n').where((line) => line.startsWith('\t')).map(Change.parse).toList();
   }
 
-  Future stash({bool apply: false}) {
+  Future stash({bool apply = false}) {
     var args = ['stash'];
     if (apply) {
       args.add('apply');
@@ -180,8 +181,8 @@ class GitRepo {
   Future<String> _git(
     List<String> args, {
     String workingDirectory,
-    bool reportFailure: true,
-    bool showOutput: true,
+    bool reportFailure = true,
+    bool showOutput = true,
   }) =>
       Shell.execute('git', args,
           workingDirectory: workingDirectory, reportFailure: reportFailure, showOutput: showOutput);
@@ -198,7 +199,7 @@ class Change {
     var deleted = fileLine.startsWith('\tdeleted:');
     var added = fileLine.startsWith('\tnew file:');
     var name = modified || deleted || added ? fileLine.substring(fileLine.indexOf(':') + 1).trim() : fileLine.trim();
-    return new Change(name, added ? ChangeStatus.added : (deleted ? ChangeStatus.deleted : ChangeStatus.modified));
+    return Change(name, added ? ChangeStatus.added : (deleted ? ChangeStatus.deleted : ChangeStatus.modified));
   }
 }
 

@@ -3,16 +3,15 @@ library indra.task;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:ansicolor/ansicolor.dart';
 import 'package:indra/src/runner.dart';
 
-var cyan = AnsiPen()..cyan(bold: true);
+import 'output/output.dart';
 
 class Context {
   static void changeDir(String dir) {
     if (Shell.workingDirectory != dir) {
       Shell.workingDirectory = dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
-      output.showMessage('${cyan('\$ cd ${Shell.workingDirectory}\n')}');
+      output.showMessage(cyan('\$ cd ${Shell.workingDirectory}\n'));
     }
   }
 }
@@ -44,7 +43,7 @@ class Shell {
     var stdout = process.stdout.asBroadcastStream();
     stdout.listen((e) => processOutput.write(new String.fromCharCodes(e)),
         onDone: () async => completer.complete(await process.exitCode));
-    if(showOutput) {
+    if (showOutput) {
       output.showProcessOutput(stdout, process.stderr);
     }
     var code = await completer.future;
@@ -63,4 +62,10 @@ class TaskFailed implements Exception {
   String message;
 
   TaskFailed([this.message]);
+
+  String toString() => message;
+}
+
+class Aborted extends TaskFailed {
+  Aborted() : super('Aborted');
 }

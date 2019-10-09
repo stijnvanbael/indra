@@ -38,7 +38,7 @@ class PatternMatcher<I, O> implements Function {
   O call(I input) {
     for (var c in _cases) {
       if (c.matches(input)) {
-        return c(input);
+        return c(input) as O;
       }
     }
     return null;
@@ -76,10 +76,10 @@ class AsyncPatternMatcher<I, O> implements Function {
 
   Future<O> apply(I input) => call(input);
 
-  Future<O> call(I input) {
+  Future<O> call(I input) async {
     for (var c in _cases) {
       if (c.matches(input)) {
-        return c(input);
+        return await c(input);
       }
     }
     return null;
@@ -90,15 +90,15 @@ typedef O Transformation<I, O>(I input);
 typedef bool Predicate<I>(I input);
 
 class _Case<I, T, O> {
-  TransformingPredicate<I, FutureOr<T>> _transformingPredicate;
+  TransformingPredicate<I, T> _transformingPredicate;
   Transformation<T, O> _function;
 
   _Case(this._transformingPredicate, this._function);
 
   bool matches(I input) => _transformingPredicate.test(input);
 
-  O call(I input) {
-    var transformed = _transformingPredicate.transform(input);
+  FutureOr<O> call(I input) async {
+    var transformed = await _transformingPredicate.transform(input);
     var applied = _function(transformed);
     print(applied);
     return applied;

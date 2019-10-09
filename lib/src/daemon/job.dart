@@ -6,13 +6,13 @@ import 'package:meta/meta.dart';
 
 class Job {
   final Script script;
-  final List arguments;
+  final List<String> arguments;
   final int number;
   DateTime startTimestamp;
 
   JobStatus status = JobStatus.queued;
-  RunnerControl control = new RunnerControl();
-  StringBuffer output = new StringBuffer();
+  RunnerControl control = RunnerControl();
+  StringBuffer output = StringBuffer();
 
   Job({
     @required this.script,
@@ -22,7 +22,7 @@ class Job {
 
   Future start() async {
     status = JobStatus.running;
-    startTimestamp = new DateTime.now();
+    startTimestamp = DateTime.now();
     control.output.listen(output.write);
     var result = await script.function(control, arguments);
     if(!control.failed) {

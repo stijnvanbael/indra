@@ -11,14 +11,14 @@ class WorkerPool {
   Map<String, int> _latestJobNumber = {};
 
   WorkerPool(int numberOfWorkers, {@required String workingDir}) {
-    _workers = new Set();
+    _workers = Set();
     for (var i = 0; i < numberOfWorkers; i++) {
-      _workers.add(new Worker(workingDir: workingDir, finished: _workerFinished));
+      _workers.add(Worker(workingDir: workingDir, finished: _workerFinished));
     }
   }
 
-  void schedule(Script script, List arguments) {
-    var job = new Job(
+  void schedule(Script script, List<String> arguments) {
+    var job = Job(
       script: script,
       arguments: arguments,
       number: _nextNumber(script.name),
@@ -42,7 +42,7 @@ class WorkerPool {
     }
   }
 
-  List<Job> get jobs => new List.from(_jobs.values);
+  List<Job> get jobs => List.from(_jobs.values);
 
   int _nextNumber(String jobName) {
     _latestJobNumber.putIfAbsent(jobName, () => 1);

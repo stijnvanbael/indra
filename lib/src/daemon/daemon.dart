@@ -37,7 +37,7 @@ class Daemon {
     requestMatcher = asyncMatcher<Request, Response>()
         .when2(
           _matchRequest('GET', '/jobs/:name/:number/output'),
-          (headers, body) => _output(headers['name'], headers['number']),
+          (Map<String, String> headers, body) => _output(headers['name'], headers['number']),
         )
         .when2(
           _matchRequest('GET', '/jobs'),
@@ -45,11 +45,11 @@ class Daemon {
         )
         .when2(
           _matchRequest('POST', '/jobs/:name/schedule'),
-          (headers, body) => _schedule(headers['name'], _fromJson(body)),
+          (Map<String, String> headers, String body) => _schedule(headers['name'], _fromJson(body)),
         )
         .when2(
           _matchRequest('DELETE', '/jobs/:name/:number'),
-          (headers, body) => _cancel(headers['name'], headers['number']),
+          (Map<String, String> headers, body) => _cancel(headers['name'], headers['number']),
         )
         .otherwise((r) => Response.notFound('Not found'));
   }
@@ -100,7 +100,8 @@ class Daemon {
     return Response.ok('OK');
   }
 
-  static TransformingPredicate<Request, Future<Pair<Map, String>>> _matchRequest(String method, String pathExpression) {
+  static TransformingPredicate<Request, Future<Pair<Map<String, String>, String>>> _matchRequest(
+      String method, String pathExpression) {
     StringPattern pathPattern = StringPattern(pathExpression);
     return predicate(
       (Request request) => request.method == method && pathPattern.matches(request.requestedUri.path),
@@ -116,7 +117,8 @@ class Daemon {
     return headers;
   }
 
-  static _fromJson(String body) => _isNotEmpty(body) ? json.decode(body) : {};
+  static Map<String, String> _fromJson(String body) =>
+      _isNotEmpty(body) ? json.decode(body) as Map<String, String> : <String, String>{};
 
-  static _isNotEmpty(object) => object != null && object != '';
+  static bool _isNotEmpty(object) => object != null && object != '';
 }
