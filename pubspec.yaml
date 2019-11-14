@@ -1,5 +1,5 @@
 name: indra
-version: 0.1.8
+version: 0.1.10
 description: Scriptable integration and automation engine
 author: Stijn Van Bael <stijn.van.bael@appify.be>
 homepage: https://github.com/stijnvanbael/indra
@@ -13,3 +13,4 @@ dependencies:
   meta: ^1.1.6
   ansicolor: ^1.0.2
   http: ^0.12.0+2
+  webdriver: ^2.1.1

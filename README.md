@@ -19,9 +19,14 @@ git clone https://github.com/stijnvanbael/indra.git
 
 Finally, install Indra:
 
+**Linux / MacOS**:
 ```
 indra/bin/install.sh
 ```
+
+**Windows**:
+ * Create an environment variable INDRA_HOME = <path\to\indra>\bin
+ * Add INDRA_HOME to your PATH environment variable
 
 Now you can run any Indra script as
 

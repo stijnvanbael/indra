@@ -20,7 +20,7 @@ class Prompt {
 
   static bool confirm(String message, {bool defaultChoice = false}) {
     output.showMessage(blue(
-        '$message (${defaultChoice ? highlight('y') : 'y'}/${!defaultChoice ? highlight('n') : 'n'}${blue('): ')}'));
+        blue('$message (${defaultChoice ? highlight('y') : 'y'}/${!defaultChoice ? highlight('n') : 'n'}${blue('): ')}')));
     return _promptConfirm(defaultChoice);
   }
 

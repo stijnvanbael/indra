@@ -49,7 +49,8 @@ class GitRepo {
     if (branch == null) {
       branch = _branch;
     }
-    var output = await _git(['pull', 'origin', branch], workingDirectory: '${Shell.workingDirectory}/$into');
+    var output = await _git(['pull', 'origin', branch],
+        workingDirectory: into.startsWith('/') ? into : '${Shell.workingDirectory}/$into');
     return output.startsWith('Updating');
   }
 
@@ -143,13 +144,23 @@ class GitRepo {
     return output.split('\n').where((line) => line.startsWith('\t')).map(Change.parse).toList();
   }
 
-  Future stash({bool apply = false}) {
-    var args = ['stash'];
-    if (apply) {
-      args.add('apply');
-    }
-    return _git(args);
+  Future stash({bool apply = false}) => _git(_args({'stash': true, 'apply': apply}));
+
+  Future fetch({bool prune = false}) => _git(_args({'fetch': true, '--prune': prune}));
+
+  Future<List<Branch>> branch({bool verbose = false, String delete}) async {
+    var output = await _git(
+        _args({
+          'branch': true,
+          '-v': verbose,
+          '-D': delete != null,
+          delete ?? '': delete != null,
+        }),
+        showOutput: delete != null);
+    return output.split('\n').where((line) => line.isNotEmpty).map(Branch.parse).toList();
   }
+
+  List<String> _args(Map<String, bool> args) => args.entries.where((e) => e.value).map((e) => e.key).toList();
 
   Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
     if (branch == null) {
@@ -204,3 +215,23 @@ class Change {
 }
 
 enum ChangeStatus { added, modified, deleted }
+
+class Branch {
+  final String name;
+  final String lastCommit;
+  final bool current;
+  final bool hasRemote;
+  final bool merged;
+
+  Branch(this.name, this.lastCommit, this.current, this.hasRemote, this.merged);
+
+  static Branch parse(String line) {
+    var current = line.startsWith('*');
+    var parts = line.split(RegExp(r'[\s\t*]+'));
+    var name = parts[1];
+    var lastCommit = parts[2];
+    var hasRemote = parts[3] != '[gone]';
+    var merged = parts[3] == 'Merged';
+    return Branch(name, lastCommit, current, hasRemote, merged);
+  }
+}
