@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-dart ~/projects/indra/bin/run.dart $@
+dart ~/.indra/runtime/bin/run.dart $@
