@@ -14,14 +14,15 @@ First, install [Dart](https://www.dartlang.org/install).
 Then, clone Indra from GitHub:
 
 ```
-git clone https://github.com/stijnvanbael/indra.git
+git clone https://github.com/stijnvanbael/indra.git ~/.indra/runtime
 ```
 
 Finally, install Indra:
 
 **Linux / MacOS**:
 ```
-indra/bin/install.sh
+cd ~/.indra/runtime/bin
+./install.sh
 ```
 
 **Windows**:
