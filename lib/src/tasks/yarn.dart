@@ -9,5 +9,7 @@ class Yarn {
 
   static Future build([String project]) => Shell.execute('yarn', ['build']..add(project));
 
+  static Future test([String project]) => Shell.execute('yarn', ['test:$project']);
+
   static Future install() => Shell.execute('yarn', []);
 }
