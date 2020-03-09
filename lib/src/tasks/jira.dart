@@ -32,6 +32,9 @@ class Jira {
   }
 
   Future transitionIssue(String issueKey, {@required Transition transition}) async {
+    if (transition == null) {
+      throw TaskFailed('Error transitioning issue "$issueKey": no transition provided');
+    }
     var url = '$_baseUrl/issue/$issueKey/transitions';
     output.showStartStep('POST', [url]);
     var response = await _client.post(
