@@ -46,14 +46,16 @@ class Triggers {
     var trigger = await get(id);
     var url = '$_baseUrl/$id';
     var headers = await _authorization;
-    output.showStartStep('PATCH', [url]);
     if (substitutions != null) {
       trigger['substitutions'] = substitutions;
     }
-    var response = await _client.patch(url, headers: headers, body: jsonEncode(trigger));
-    if (response.statusCode == 404) {
-      throw TaskFailed('Trigger "$id" not found in project "${gcloud.project}"');
-    } else if (response.statusCode >= 400) {
+    id = trigger.remove('id') as String;
+    url = '$_baseUrl/$id';
+    trigger.remove('createTime');
+    var json = jsonEncode(trigger);
+    output.showStartStep('PATCH', [url, json]);
+    var response = await _client.patch(url, headers: headers, body: json);
+    if (response.statusCode >= 400) {
       throw TaskFailed('Failed to update trigger "$id": ${response.body}');
     } else {
       output.showMessage('Updated build trigger $id\n');
