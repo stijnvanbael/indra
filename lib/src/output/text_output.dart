@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:indra/src/output/output.dart';
 
 abstract class TextOutput implements Output {
-  writeLine(String line);
+  void writeLine(String line);
 
-  write(String text);
+  void write(String text);
 
-  writeError(String text);
+  void writeError(String text);
 
   @override
   void showProcessOutput(Stream<List<int>> stdout, Stream<List<int>> stderr) {
@@ -23,12 +23,12 @@ abstract class TextOutput implements Output {
 
   @override
   void showStartRunner() {
-    writeLine(cyan(r"  _____           _           "));
-    writeLine(cyan(r"  \_   \_ __   __| |_ __ __ _ "));
+    writeLine(cyan(r'  _____           _           '));
+    writeLine(cyan(r'  \_   \_ __   __| |_ __ __ _ '));
     writeLine(cyan(r"   / /\/ '_ \ / _` | '__/ _` |"));
-    writeLine(cyan(r"/\/ /_ | | | | (_| | | | (_| |"));
-    writeLine(cyan(r"\____/ |_| |_|\__,_|_|  \__,_|"));
-    writeLine(cyan(r"                              "));
+    writeLine(cyan(r'/\/ /_ | | | | (_| | | | (_| |'));
+    writeLine(cyan(r'\____/ |_| |_|\__,_|_|  \__,_|'));
+    writeLine(cyan(r'                              '));
   }
 
   @override

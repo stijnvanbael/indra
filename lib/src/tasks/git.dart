@@ -117,16 +117,20 @@ class GitRepo {
     await _git(params);
   }
 
-  Future addAndCommit({@required String message, bool allowClean = false}) async {
+  Future addAndCommit({@required String message, bool allowClean = false, bool noVerify = false}) async {
     await add('.');
-    await commit(message: message, allowClean: allowClean);
+    await commit(message: message, allowClean: allowClean, noVerify: noVerify);
   }
 
   Future add(String file) => _git(['add', file]);
 
-  Future commit({@required String message, bool allowClean = false}) async {
+  Future commit({@required String message, bool allowClean = false, bool noVerify = false}) async {
     try {
-      await _git(['commit', '-m', message], reportFailure: !allowClean);
+      var params = ['commit', '-m', message];
+      if (noVerify) {
+        params.add('--no-verify');
+      }
+      await _git(params, reportFailure: !allowClean);
     } on TaskFailed catch (e) {
       if (allowClean) {
         if (!e.message.contains('nothing to commit, working tree clean')) {

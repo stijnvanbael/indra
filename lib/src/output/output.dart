@@ -12,7 +12,7 @@ var white = textColor(AnsiPen()..rgb(r: 1.0, g: 1.0, b: 1.0));
 var blue = textColor(AnsiPen()..blue(bold: true));
 var highlight = textColor(AnsiPen()..gray(level: 1.0)..gray(level: 0.5, bg: true));
 
-typedef String StringFormatter(String input);
+typedef StringFormatter = String Function(String input);
 
 StringFormatter textColor(AnsiPen pen) => (String input) => pen(input) as String;
 
