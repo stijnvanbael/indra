@@ -1,6 +1,6 @@
 class StringPattern {
   final String pattern;
-  RegExp _regExp;
+  late RegExp _regExp;
   List<String> _parameters = [];
 
   StringPattern(this.pattern) {
@@ -12,11 +12,11 @@ class StringPattern {
   Map<String, String> parse(String string) {
     var match = _regExp.firstMatch(string);
     if (match == null) {
-      return null;
+      return {};
     }
     var result = <String, String>{};
     _parameters.forEach((param) {
-      result[param] = match[_parameters.indexOf(param) + 1];
+      result[param] = match[_parameters.indexOf(param) + 1]!;
     });
     return result;
   }
@@ -26,10 +26,10 @@ class StringPattern {
         pattern.replaceAllMapped(
             new RegExp(r'(:\w+)|([^:]+)', caseSensitive: false), (Match m) {
           if (m[1] != null) {
-            _parameters.add(m[1].substring(1));
+            _parameters.add(m[1]!.substring(1));
             return r'(.+)';
           } else {
-            return _quote(m[2]);
+            return _quote(m[2]!);
           }
         }) +
         r'$');
@@ -37,5 +37,5 @@ class StringPattern {
 
   String _quote(String string) => string.replaceAllMapped(
       new RegExp(r'([.?\\\[\]{\}\-*$^+<>|])|(.)'),
-      (m) => m[1] != null ? r'\' + m[1] : m[2]);
+      (m) => m[1] != null ? r'\' + m[1]! : m[2]!);
 }

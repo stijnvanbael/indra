@@ -4,8 +4,8 @@ import 'package:indra/indra.dart';
 
 class Ansible {
   static Future playbook({
-    String playbook,
-    String inventory,
+    required String playbook,
+    String? inventory,
   }) async {
     var params = [playbook];
     if (inventory != null) {
@@ -14,7 +14,7 @@ class Ansible {
     await Shell.execute('ansible-playbook', params);
   }
 
-  static Future galaxyInstall({String role}) async {
+  static Future galaxyInstall({required String role}) async {
     await Shell.execute('ansible-galaxy', ['install', role]);
   }
 }

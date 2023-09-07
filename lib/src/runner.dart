@@ -10,7 +10,11 @@ import 'package:indra/src/output/output.dart';
 Output output = ConsoleOutput();
 
 /// Spawns a new isolate to run the specified script. The returned Future will complete when the script completes.
-Future runScript(String script, [List<String> args = const [], RunnerControl control]) async {
+Future runScript(
+  String script,
+  RunnerControl control, [
+  List<String> args = const [],
+]) async {
   var exitPort = ReceivePort();
   var errorPort = ReceivePort();
   var outputPort = ReceivePort();
@@ -38,25 +42,21 @@ Future runScript(String script, [List<String> args = const [], RunnerControl con
         output.showEndScript(script);
       } else if (control.restart) {
         control.reset();
-        runScript(script, args, control);
+        runScript(script, control, args);
       }
     } else {
-      output.showJobFailed(control.error);
+      output.showJobFailed(control.error!);
     }
     outputPort.close();
     errorPort.close();
     exitPort.close();
-    if (control != null) {
-      control.close();
-    }
+    control.close();
   }).asFuture();
 }
 
 List<String> _addParams(String script, List<String> args) {
   var workingDir = script.substring(0, script.lastIndexOf('/'));
-  var jobName = script.endsWith("/build.dart")
-      ? workingDir.substring(workingDir.lastIndexOf('/') + 1)
-      : script.substring(script.lastIndexOf('/') + 1, script.indexOf('.dart'));
+  var jobName = workingDir.substring(workingDir.lastIndexOf('/') + 1);
   var newArgs = List<String>.from(args);
   newArgs.add('jobName=$jobName');
   newArgs.add('workingDir=$workingDir');
@@ -81,23 +81,21 @@ void _configureErrorHandler(ReceivePort errorPort, RunnerControl control) {
 void _configureOutput(ReceivePort outputPort, RunnerControl control) {
   outputPort.listen((message) {
     output.showMessage(message as String);
-    if (control != null) {
-      control.appendOutput(message as String);
-    }
+    control.appendOutput(message);
   });
 }
 
 class RunnerControl {
   StreamController _output = StreamController();
 
-  Isolate isolate;
+  late Isolate isolate;
 
   Stream get output => _output.stream;
 
   bool failed = false;
   bool restart = false;
   bool aborted = false;
-  String error;
+  String? error;
 
   appendOutput(String message) => _output.add(message);
 

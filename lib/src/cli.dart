@@ -1,18 +1,19 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:indra/indra.dart';
 import 'package:indra/src/output/console_output.dart';
 import 'package:indra/src/output/isolate_output.dart';
-import 'package:indra/src/runner.dart';
 
-Map<String, String> params;
+late Map<String, String> params;
 
-Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, String> defaultParams = const {}}) {
+Map<String, String> setup(SendPort? outputPort, List<String> args,
+    {Map<String, String> defaultParams = const {}}) {
   output = outputPort != null ? IsolateOutput(outputPort) : ConsoleOutput();
   params = defaultParams;
   params.addAll(parseParams(args));
   if (params.containsKey('workingDir')) {
-    Context.changeDir(params['workingDir']);
+    Context.changeDir(params['workingDir']!);
   } else {
     Context.changeDir(Shell.workingDirectory);
   }
@@ -24,7 +25,7 @@ Map<String, String> setup(SendPort outputPort, List<String> args, {Map<String, S
 }
 
 Map<String, String> parseParams(List<String> args) {
-  String previousParam;
+  String? previousParam;
   var params = Map<String, String>();
   args.forEach((a) {
     var keyValue = a.split('=');
@@ -33,7 +34,7 @@ Map<String, String> parseParams(List<String> args) {
         output.showError('$a\nUsage: parameter=value');
         throw ArgumentError('$a\nUsage: parameter=value');
       } else {
-        params[previousParam] = '${params[previousParam]} ${keyValue[0]}';
+        params[previousParam!] = '${params[previousParam]} ${keyValue[0]}';
       }
     } else {
       previousParam = keyValue[0];
@@ -43,18 +44,18 @@ Map<String, String> parseParams(List<String> args) {
   return params;
 }
 
-Runner bootstrap(SendPort outputPort, List<String> args, {Map<String, String> defaultParams = const {}}) =>
+Runner bootstrap(SendPort outputPort, List<String> args,
+        {Map<String, String> defaultParams = const {}}) =>
     Runner(setup(outputPort, args, defaultParams: defaultParams));
 
 String requiredParam(Map<String, String> params, String name) {
-  if (!params.containsKey(name) || params[name].isEmpty) {
-    output.showError('Missing required param "$name"');
-    throw TaskFailed();
+  if (!params.containsKey(name) || params[name]!.isEmpty) {
+    throw TaskFailed('Missing required param "$name"');
   }
-  return params[name];
+  return params[name]!;
 }
 
-typedef void Script(Map<String, String> params);
+typedef FutureOr<void> Script(Map<String, String> params);
 
 class Runner {
   Map<String, String> _params;

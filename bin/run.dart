@@ -50,13 +50,13 @@ main(List<String> args) {
       exit(-1);
     }
   }
-  runScript(path, args.sublist(1), new RunnerControl());
+  runScript(path, new RunnerControl(), args.sublist(1));
 }
 
 String homeFolder() {
   if (Platform.isWindows) {
-    return Platform.environment['UserProfile'];
+    return Platform.environment['UserProfile']!;
   } else {
-    return Platform.environment['HOME'];
+    return Platform.environment['HOME']!;
   }
 }

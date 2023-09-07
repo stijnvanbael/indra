@@ -4,14 +4,18 @@ import 'package:indra/src/daemon/job.dart';
 import 'package:indra/src/runner.dart';
 
 class Worker {
-  Function _finished;
+  void Function(Worker worker, Job job)? _finished;
   bool _running = false;
-  String _name;
+  late String _name;
   final String workingDir;
 
   bool get idle => !_running;
 
-  Worker({this.workingDir, finished(Worker worker, Job job), String name}) {
+  Worker({
+    required this.workingDir,
+    finished(Worker worker, Job job)?,
+    String? name,
+  }) {
     _finished = finished;
     _name = name == null ? _nextWorkerName() : name;
   }
@@ -21,9 +25,10 @@ class Worker {
     output.showWorkerStarted(_name, job.name, job.number);
     await job.start();
     _running = false;
-    output.showWorkerFinished(_name, job.name, job.number, job.status.toString().substring('JobStatus.'.length));
+    output.showWorkerFinished(_name, job.name, job.number,
+        job.status.toString().substring('JobStatus.'.length));
     if (_finished != null) {
-      _finished(this, job);
+      _finished!(this, job);
     }
   }
 }

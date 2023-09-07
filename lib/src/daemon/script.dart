@@ -17,7 +17,9 @@ class ScriptRepository {
   ScriptRepository(this.workingDir);
 
   Script getScript(String name) {
-    return Script(name, (RunnerControl control, List<String> arguments) => runScript('$workingDir/$name.dart', arguments, control));
+    return Script(
+        name,
+        (RunnerControl control, List<String> arguments) =>
+            runScript('$workingDir/$name.dart', control, arguments));
   }
-
 }

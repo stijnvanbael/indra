@@ -25,7 +25,7 @@ class IsolateOutput extends TextOutput {
   }
 
   @override
-  String readInput() {
-    return stdin.readLineSync(encoding: Encoding.getByName('utf-8'));
+  String? readInput() {
+    return stdin.readLineSync(encoding: Encoding.getByName('utf-8')!);
   }
 }

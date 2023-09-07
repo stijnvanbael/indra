@@ -10,7 +10,8 @@ import 'output/output.dart';
 class Context {
   static void changeDir(String dir) {
     if (Shell.workingDirectory != dir) {
-      Shell.workingDirectory = dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
+      Shell.workingDirectory =
+          dir.startsWith('/') ? dir : '${Shell.workingDirectory}/$dir';
       output.showMessage(cyan('\$ cd ${Shell.workingDirectory}\n'));
     }
   }
@@ -24,8 +25,9 @@ class Shell {
   static Future<String> execute(
     String executable,
     List<String> args, {
-    String workingDirectory,
-    String setup,
+    String? workingDirectory,
+    String? setup,
+    String? stdin,
     bool reportFailure = true,
     bool showOutput = true,
     bool waitUntilFinished = true,
@@ -34,39 +36,54 @@ class Shell {
       _setRunning();
     }
     output.showStartStep(executable, args);
-    Process process = await _startProcess(executable, args, workingDirectory, setup);
+    Process process =
+        await _startProcess(executable, args, workingDirectory, setup);
     var completer = Completer<int>();
-    StringBuffer processOutput = _attachOutputListener(process, showOutput, completer);
+    StringBuffer processOutput =
+        _attachOutputListener(process, showOutput, completer);
     if (waitUntilFinished) {
-      await _finishProcess(process, reportFailure, executable, processOutput, completer);
+      await _finishProcess(
+          process, reportFailure, executable, processOutput, completer);
+    }
+    if (stdin != null) {
+      process.stdin.add(stdin.codeUnits);
     }
     return processOutput.toString();
   }
 
   static void _setRunning() {
     if (running) {
-      throw TaskFailed('Another task is still running, did you forget to put "await" in front of your task?');
+      throw TaskFailed(
+          'Another task is still running, did you forget to put "await" in front of your task?');
     }
     running = true;
   }
 
   static Future<Process> _startProcess(
-      String executable, List<String> args, String workingDirectory, String setup) async {
+    String executable,
+    List<String> args,
+    String? workingDirectory,
+    String? setup,
+  ) async {
     try {
       var process = await Process.start(
         executable,
         args,
-        workingDirectory: workingDirectory != null ? workingDirectory : Shell.workingDirectory,
+        workingDirectory: workingDirectory != null
+            ? workingDirectory
+            : Shell.workingDirectory,
       );
       return process;
     } on ProcessException catch (e) {
-      output.showError('Failed to start $executable (${e.message}), make sure it is installed'
+      output.showError(
+          'Failed to start $executable (${e.message}), make sure it is installed'
           '${setup != null ? '\nMore info on how to set up $executable: $setup' : ''}');
       throw Aborted();
     }
   }
 
-  static StringBuffer _attachOutputListener(Process process, bool showOutput, Completer<int> completer) {
+  static StringBuffer _attachOutputListener(
+      Process process, bool showOutput, Completer<int> completer) {
     var processOutput = StringBuffer();
     var stdout = process.stdout.asBroadcastStream();
     stdout.listen((e) => processOutput.write(String.fromCharCodes(e)),
@@ -77,7 +94,11 @@ class Shell {
     return processOutput;
   }
 
-  static Future _finishProcess(Process process, bool reportFailure, String executable, StringBuffer processOutput,
+  static Future _finishProcess(
+      Process process,
+      bool reportFailure,
+      String executable,
+      StringBuffer processOutput,
       Completer<int> completer) async {
     var code = await completer.future;
     running = false;
@@ -93,7 +114,7 @@ class Shell {
 class TaskFailed implements Exception {
   String message;
 
-  TaskFailed([this.message]);
+  TaskFailed(this.message);
 
   String toString() => message;
 }

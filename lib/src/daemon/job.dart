@@ -2,22 +2,21 @@ import 'dart:async';
 
 import 'package:indra/src/daemon/script.dart';
 import 'package:indra/src/runner.dart';
-import 'package:meta/meta.dart';
 
 class Job {
   final Script script;
   final List<String> arguments;
   final int number;
-  DateTime startTimestamp;
+  DateTime? startTimestamp;
 
   JobStatus status = JobStatus.queued;
   RunnerControl control = RunnerControl();
   StringBuffer output = StringBuffer();
 
   Job({
-    @required this.script,
-    @required this.arguments,
-    @required this.number,
+    required this.script,
+    required this.arguments,
+    required this.number,
   });
 
   Future start() async {
@@ -25,7 +24,7 @@ class Job {
     startTimestamp = DateTime.now();
     control.output.listen(output.write);
     var result = await script.function(control, arguments);
-    if(!control.failed) {
+    if (!control.failed) {
       status = JobStatus.completed;
     } else {
       status = JobStatus.failed;

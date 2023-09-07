@@ -2,35 +2,27 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:indra/indra.dart';
-import 'package:indra/src/cli.dart';
 import 'package:indra/src/output/output.dart';
-import 'package:meta/meta.dart';
 
 class GitRepo {
-  String _uri;
-  String _branch;
+  late String _uri;
+  late String _branch;
   final RegExp _uriPattern = RegExp(r'.+?([^/]+)\.git');
 
-  GitRepo(String uri, {String branch = 'master'}) {
+  GitRepo(String uri, {String? branch}) {
     _uri = uri;
-    _branch = branch;
+    _branch = branch ?? 'master';
   }
 
-  Future clone({String into}) async {
+  Future clone({String? into}) async {
     List<String> args = ['clone'];
-    if (_branch != null) args.addAll(['-b', _branch]);
+    args.addAll(['-b', _branch]);
     args.add(_uri);
     if (into != null) args.add(into);
     await _git(args);
   }
 
-  Future cloneOrPull({String into = '', bool clean = false}) async {
-    if (into == null) {
-      into = params['jobName'];
-      if (into == null) {
-        into = _extractDirFromUri();
-      }
-    }
+  Future cloneOrPull({String into = '.', bool clean = false}) async {
     Context.changeDir(Shell.rootDirectory);
     var directory = Directory('${Shell.workingDirectory}/$into');
     if (clean) {
@@ -45,19 +37,25 @@ class GitRepo {
     Context.changeDir(into);
   }
 
-  Future<bool> pull({String branch, String into = ''}) async {
+  Future<bool> pull({String? branch, String into = ''}) async {
     if (branch == null) {
       branch = _branch;
     }
     var output = await _git(['pull', 'origin', branch],
-        workingDirectory: into.startsWith('/') ? into : '${Shell.workingDirectory}/$into');
+        workingDirectory:
+            into.startsWith('/') ? into : '${Shell.workingDirectory}/$into');
     return output.startsWith('Updating');
   }
 
-  Future checkout({String branch, String into = '', bool createBranch = false}) async {
+  Future checkout({
+    String? branch,
+    String into = '',
+    bool createBranch = false,
+  }) async {
     if (createBranch) {
       try {
-        await _checkout(branch, into, createBranch: false, reportFailure: false);
+        await _checkout(branch, into,
+            createBranch: false, reportFailure: false);
       } on TaskFailed {
         output.showMessage('Branch $branch does not exist yet, creating ...\n');
         await _checkout(branch, into, createBranch: true);
@@ -69,10 +67,17 @@ class GitRepo {
 
   Future tag(String tag) => _git(['tag', tag]);
 
+  Future<List<String>> get tags async {
+    var tags = await _git(['tag']);
+    return tags.split('\n');
+  }
+
+  Future<String> latestTag() => _git(['describe', '--tags']);
+
   Future push({
     bool tags = false,
     String remote = 'origin',
-    String branch,
+    String? branch,
   }) async {
     var params = ['push'];
     if (tags) {
@@ -84,13 +89,14 @@ class GitRepo {
     await _git(params);
   }
 
-  Future<String> verifyBranch({@required String regex}) async {
+  Future<String> verifyBranch({required String regex}) async {
     var branch = await _git(['rev-parse', '--abbrev-ref', 'HEAD']);
     if (branch.contains('\n')) {
       branch = branch.substring(0, branch.indexOf('\n'));
     }
     if (!RegExp(regex).hasMatch(branch)) {
-      output.showError('Branch "$branch" does not match the required pattern "$regex"', '');
+      output.showError(
+          'Branch "$branch" does not match the required pattern "$regex"', '');
       exit(-1);
     } else {
       output.showMessage('On branch "$branch" > OK\n');
@@ -98,7 +104,7 @@ class GitRepo {
     return branch;
   }
 
-  Future rebase({String branch, bool abort = false}) {
+  Future rebase({String? branch, bool abort = false}) {
     var params = ['rebase'];
     if (branch != null) {
       params.add(branch);
@@ -117,14 +123,20 @@ class GitRepo {
     await _git(params);
   }
 
-  Future addAndCommit({@required String message, bool allowClean = false, bool noVerify = false}) async {
+  Future addAndCommit(
+      {required String message,
+      bool allowClean = false,
+      bool noVerify = false}) async {
     await add('.');
     await commit(message: message, allowClean: allowClean, noVerify: noVerify);
   }
 
   Future add(String file) => _git(['add', file]);
 
-  Future commit({@required String message, bool allowClean = false, bool noVerify = false}) async {
+  Future commit(
+      {required String message,
+      bool allowClean = false,
+      bool noVerify = false}) async {
     try {
       var params = ['commit', '-m', message];
       if (noVerify) {
@@ -145,14 +157,20 @@ class GitRepo {
 
   Future<List<Change>> status({bool showOutput = true}) async {
     var output = (await _git(['status'], showOutput: showOutput));
-    return output.split('\n').where((line) => line.startsWith('\t')).map(Change.parse).toList();
+    return output
+        .split('\n')
+        .where((line) => line.startsWith('\t'))
+        .map(Change.parse)
+        .toList();
   }
 
-  Future stash({bool apply = false}) => _git(_args({'stash': true, 'apply': apply}));
+  Future stash({bool apply = false}) =>
+      _git(_args({'stash': true, 'apply': apply}));
 
-  Future fetch({bool prune = false}) => _git(_args({'fetch': true, '--prune': prune}));
+  Future fetch({bool prune = false}) =>
+      _git(_args({'fetch': true, '--prune': prune}));
 
-  Future<List<Branch>> branch({bool verbose = false, String delete}) async {
+  Future<List<Branch>> branch({bool verbose = false, String? delete}) async {
     var output = await _git(
         _args({
           'branch': true,
@@ -161,12 +179,27 @@ class GitRepo {
           delete ?? '': delete != null,
         }),
         showOutput: delete != null);
-    return output.split('\n').where((line) => line.isNotEmpty).map(Branch.parse).toList();
+    return output
+        .split('\n')
+        .where((line) => line.isNotEmpty)
+        .map(Branch.parse)
+        .toList();
   }
 
-  List<String> _args(Map<String, bool> args) => args.entries.where((e) => e.value).map((e) => e.key).toList();
+  Future<String> get currentCommitHash async {
+    var hash = await _git(['rev-parse', 'HEAD']);
+    return hash.trim().substring(0, 8);
+  }
 
-  Future _checkout(String branch, String into, {bool createBranch = false, bool reportFailure = true}) async {
+  List<String> _args(Map<String, bool> args) =>
+      args.entries.where((e) => e.value).map((e) => e.key).toList();
+
+  Future _checkout(
+    String? branch,
+    String into, {
+    bool createBranch = false,
+    bool reportFailure = true,
+  }) async {
     if (branch == null) {
       branch = _branch;
     }
@@ -175,15 +208,9 @@ class GitRepo {
       params.add('-b');
     }
     params.add(branch);
-    await _git(params, workingDirectory: '${Shell.workingDirectory}/$into', reportFailure: reportFailure);
-  }
-
-  String _extractDirFromUri() {
-    var match = _uriPattern.firstMatch(_uri);
-    if (match != null) {
-      return match[1];
-    }
-    return 'build';
+    await _git(params,
+        workingDirectory: '${Shell.workingDirectory}/$into',
+        reportFailure: reportFailure);
   }
 
   Future _clean(Directory directory) async {
@@ -195,12 +222,14 @@ class GitRepo {
 
   Future<String> _git(
     List<String> args, {
-    String workingDirectory,
+    String? workingDirectory,
     bool reportFailure = true,
     bool showOutput = true,
   }) =>
       Shell.execute('git', args,
-          workingDirectory: workingDirectory, reportFailure: reportFailure, showOutput: showOutput);
+          workingDirectory: workingDirectory,
+          reportFailure: reportFailure,
+          showOutput: showOutput);
 }
 
 class Change {
@@ -213,8 +242,14 @@ class Change {
     var modified = fileLine.startsWith('\tmodified:');
     var deleted = fileLine.startsWith('\tdeleted:');
     var added = fileLine.startsWith('\tnew file:');
-    var name = modified || deleted || added ? fileLine.substring(fileLine.indexOf(':') + 1).trim() : fileLine.trim();
-    return Change(name, added ? ChangeStatus.added : (deleted ? ChangeStatus.deleted : ChangeStatus.modified));
+    var name = modified || deleted || added
+        ? fileLine.substring(fileLine.indexOf(':') + 1).trim()
+        : fileLine.trim();
+    return Change(
+        name,
+        added
+            ? ChangeStatus.added
+            : (deleted ? ChangeStatus.deleted : ChangeStatus.modified));
   }
 }
 

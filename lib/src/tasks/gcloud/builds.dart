@@ -6,35 +6,38 @@ import 'package:indra/src/task.dart';
 import 'package:indra/src/tasks/gcloud/gcloud.dart';
 
 class Builds {
-  final GCloud gcloud;
+  final GCloud _gcloud;
 
-  Builds(this.gcloud);
+  Builds(this._gcloud);
 
-  Triggers get triggers => Triggers(gcloud);
+  Triggers get triggers => Triggers(_gcloud);
 
   log(String buildId, {bool stream = false}) {
     var params = ['builds', 'log', buildId];
     if (stream) {
       params.add('--stream');
     }
-    return gcloud.run(params);
+    return _gcloud.run(params);
   }
 }
 
 class Triggers {
-  final GCloud gcloud;
+  final GCloud _gcloud;
   final Client _client = Client();
   final String _baseUrl;
 
-  Triggers(this.gcloud) : _baseUrl = 'https://cloudbuild.googleapis.com/v1/projects/${gcloud.project}/triggers';
+  Triggers(this._gcloud)
+      : _baseUrl =
+            'https://cloudbuild.googleapis.com/v1/projects/${_gcloud.project}/triggers';
 
   Future<Map<String, dynamic>> get(String id) async {
     var headers = await _authorization;
     var url = '$_baseUrl/$id';
     output.showStartStep('GET', [url]);
-    var response = await _client.get(url, headers: headers);
+    var response = await _client.get(Uri.parse(url), headers: headers);
     if (response.statusCode == 404) {
-      throw TaskFailed('Trigger "$id" not found in project "${gcloud.project}"');
+      throw TaskFailed(
+          'Trigger "$id" not found in project "${_gcloud.project}"');
     } else if (response.statusCode >= 400) {
       throw TaskFailed('Failed to update trigger "$id": ${response.body}');
     } else {
@@ -42,7 +45,7 @@ class Triggers {
     }
   }
 
-  Future update(String id, {Map<String, String> substitutions}) async {
+  Future update(String id, {Map<String, String>? substitutions}) async {
     var trigger = await get(id);
     var url = '$_baseUrl/$id';
     var headers = await _authorization;
@@ -54,7 +57,8 @@ class Triggers {
     trigger.remove('createTime');
     var json = jsonEncode(trigger);
     output.showStartStep('PATCH', [url, json]);
-    var response = await _client.patch(url, headers: headers, body: json);
+    var response =
+        await _client.patch(Uri.parse(url), headers: headers, body: json);
     if (response.statusCode >= 400) {
       throw TaskFailed('Failed to update trigger "$id": ${response.body}');
     } else {
@@ -64,7 +68,7 @@ class Triggers {
 
   Future<Map<String, String>> get _authorization async {
     return {
-      'Authorization': 'Bearer ${await gcloud.config.accessToken}',
+      'Authorization': 'Bearer ${await _gcloud.config.accessToken}',
     };
   }
 
@@ -72,9 +76,11 @@ class Triggers {
     var headers = await _authorization;
     var url = '$_baseUrl/$id:run';
     output.showStartStep('POST', [url]);
-    var response = await _client.post(url, headers: headers, body: jsonEncode({'branchName': branchName}));
+    var response = await _client.post(Uri.parse(url),
+        headers: headers, body: jsonEncode({'branchName': branchName}));
     if (response.statusCode == 404) {
-      throw TaskFailed('Trigger "$id" not found in project "${gcloud.project}"');
+      throw TaskFailed(
+          'Trigger "$id" not found in project "${_gcloud.project}"');
     } else if (response.statusCode >= 400) {
       throw TaskFailed('Failed to run trigger "$id": ${response.body}');
     } else {

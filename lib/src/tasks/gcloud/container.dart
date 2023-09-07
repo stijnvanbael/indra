@@ -1,52 +1,79 @@
 import 'gcloud.dart';
 
 class Container {
-  final GCloud gcloud;
+  final GCloud _gcloud;
 
-  Container(this.gcloud);
+  Container(this._gcloud);
 
-  Images get images => Images(gcloud);
+  Images get images => Images(_gcloud);
 }
 
 class Images {
-  final GCloud gcloud;
+  final GCloud _gcloud;
 
-  Images(this.gcloud);
+  Images(this._gcloud);
 
-  Future<List<Tag>> tags(String image, {int limit}) async {
-    var params = ['container', 'images', 'list-tags', '${gcloud.hostname}/${gcloud.project}/$image'];
+  Future<List<ImageTag>> tags(String image, {int? limit}) async {
+    var params = [
+      'container',
+      'images',
+      'list-tags',
+      '${_gcloud.hostname}/${_gcloud.project}/$image'
+    ];
     if (limit != null) {
       params.add('--limit=$limit');
     }
-    return (await gcloud.run(params, showOutput: false))
+    return (await _gcloud.run(params, showOutput: false))
         .split('\n')
         .skip(1)
-        .map(Tag.parse)
+        .map(ImageTag.parse)
         .where((tag) => tag != null)
+        .map((tag) => tag!)
         .toList();
   }
 
+  Future addTag(
+    String image, {
+    required String existing,
+    required String toAdd,
+  }) =>
+      _gcloud.run([
+        'container',
+        'images',
+        'add-tag',
+        '${_gcloud.hostname}/${_gcloud.project}/$image:$existing',
+        '${_gcloud.hostname}/${_gcloud.project}/$image:$toAdd',
+        '-q',
+      ], showOutput: false);
+
   Future<List<Image>> list() async {
-    var params = ['container', 'images', 'list', '--repository=${gcloud.hostname}/${gcloud.project}'];
-    return (await gcloud.run(params, showOutput: false))
+    var params = [
+      'container',
+      'images',
+      'list',
+      '--repository=${_gcloud.hostname}/${_gcloud.project}'
+    ];
+    return (await _gcloud.run(params, showOutput: false))
         .split('\n')
         .skip(1)
         .map(Image.parse)
         .where((image) => image != null)
+        .map((image) => image!)
         .toList();
   }
 }
 
-class Tag {
+class ImageTag {
   final String id;
+  final List<String> tags;
   final DateTime timestamp;
 
-  Tag(this.id, this.timestamp);
+  ImageTag(this.id, this.tags, this.timestamp);
 
-  static Tag parse(String tagLine) {
+  static ImageTag? parse(String tagLine) {
     var parts = tagLine.split(new RegExp(r'\s+'));
     if (parts.length == 3) {
-      return Tag(parts[1], DateTime.parse(parts[2]));
+      return ImageTag(parts[0], parts[1].split(','), DateTime.parse(parts[2]));
     } else {
       return null;
     }
@@ -60,7 +87,7 @@ class Image {
 
   Image(this.hostname, this.project, this.name);
 
-  static Image parse(String imageLine) {
+  static Image? parse(String imageLine) {
     var parts = imageLine.split('/');
     if (parts.length == 3) {
       return Image(parts[0], parts[1], parts[2]);

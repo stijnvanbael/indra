@@ -10,11 +10,13 @@ var yellow = textColor(AnsiPen()..yellow(bold: true));
 var red = textColor(AnsiPen()..red(bold: true));
 var white = textColor(AnsiPen()..rgb(r: 1.0, g: 1.0, b: 1.0));
 var blue = textColor(AnsiPen()..blue(bold: true));
-var highlight = textColor(AnsiPen()..gray(level: 1.0)..gray(level: 0.5, bg: true));
+var highlight = textColor(AnsiPen()
+  ..gray(level: 1.0)
+  ..gray(level: 0.5, bg: true));
 
 typedef StringFormatter = String Function(String input);
 
-StringFormatter textColor(AnsiPen pen) => (String input) => pen(input) as String;
+StringFormatter textColor(AnsiPen pen) => (String input) => pen(input);
 
 abstract class Output {
   void showStartStep(String executable, List<String> args);
@@ -39,9 +41,10 @@ abstract class Output {
 
   void showWorkerStarted(String workerName, String jobName, int number);
 
-  void showWorkerFinished(String workerName, String jobName, int number, String status);
+  void showWorkerFinished(
+      String workerName, String jobName, int number, String status);
 
   void showMessage(String message);
 
-  String readInput();
+  String? readInput();
 }

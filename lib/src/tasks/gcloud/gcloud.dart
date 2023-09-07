@@ -1,5 +1,4 @@
 import 'package:indra/src/task.dart';
-import 'package:meta/meta.dart';
 
 import 'builds.dart';
 import 'config.dart';
@@ -10,8 +9,8 @@ class GCloud {
   final String hostname;
 
   GCloud({
-    @required this.project,
-    @required this.hostname,
+    required this.project,
+    required this.hostname,
   });
 
   Container get container => Container(this);

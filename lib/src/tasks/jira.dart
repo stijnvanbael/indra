@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:indra/indra.dart';
-import 'package:meta/meta.dart';
 
 class Jira {
   final String authentication;
@@ -11,34 +10,36 @@ class Jira {
 
   Jira(
     String host, {
-    @required this.authentication,
+    required this.authentication,
     String protocol = 'https',
     int version = 3,
   }) : _baseUrl = '$protocol://$host/rest/api/$version';
 
-  Future<JiraIssue> getIssue(String issueKey) async {
+  Future<JiraIssue?> getIssue(String issueKey) async {
     var url = '$_baseUrl/issue/$issueKey';
     output.showStartStep('GET', [url]);
-    var response = await _client.get(url, headers: {
+    var response = await _client.get(Uri.parse(url), headers: {
       'Authorization': 'Basic $authentication',
     });
     if (response.statusCode == 200) {
-      return JiraIssue.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      return JiraIssue.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
     } else if (response.statusCode == 404) {
       return null;
     } else {
-      throw TaskFailed('Error getting issue with key "$issueKey": HTTP ${response.statusCode}');
+      throw TaskFailed(
+          'Error getting issue with key "$issueKey": HTTP ${response.statusCode}');
     }
   }
 
-  Future transitionIssue(String issueKey, {@required Transition transition}) async {
-    if (transition == null) {
-      throw TaskFailed('Error transitioning issue "$issueKey": no transition provided');
-    }
+  Future transitionIssue(
+    String issueKey, {
+    required Transition transition,
+  }) async {
     var url = '$_baseUrl/issue/$issueKey/transitions';
     output.showStartStep('POST', [url]);
     var response = await _client.post(
-      url,
+      Uri.parse(url),
       body: jsonEncode({
         'transition': {'id': '${transition.id}'}
       }),
@@ -48,9 +49,11 @@ class Jira {
       },
     );
     if (response.statusCode == 204) {
-      output.showMessage('Transitioned issue "$issueKey" -> ${transition.name}\n');
+      output.showMessage(
+          'Transitioned issue "$issueKey" -> ${transition.name}\n');
     } else {
-      throw TaskFailed('Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
+      throw TaskFailed(
+          'Error transitioning issue "$issueKey": HTTP ${response.statusCode}');
     }
   }
 
@@ -58,7 +61,7 @@ class Jira {
     var url = '$_baseUrl/issue/$issueKey/comment';
     output.showStartStep('POST', [url]);
     var response = await _client.post(
-      url,
+      Uri.parse(url),
       body: jsonEncode({'body': comment}),
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +71,8 @@ class Jira {
     if (response.statusCode == 201) {
       output.showMessage('Commented issue "$issueKey"\n');
     } else {
-      throw TaskFailed('Error commenting issue "$issueKey": HTTP ${response.statusCode}');
+      throw TaskFailed(
+          'Error commenting issue "$issueKey": HTTP ${response.statusCode}');
     }
   }
 }
@@ -90,10 +94,10 @@ class JiraIssue {
   final String status;
 
   JiraIssue({
-    this.key,
-    this.summary,
-    this.type,
-    this.status,
+    required this.key,
+    required this.summary,
+    required this.type,
+    required this.status,
   });
 
   JiraIssue.fromJson(Map<String, dynamic> json)

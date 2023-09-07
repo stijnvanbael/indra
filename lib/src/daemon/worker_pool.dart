@@ -2,15 +2,14 @@ import 'package:indra/src/daemon/job.dart';
 import 'package:indra/src/daemon/script.dart';
 import 'package:indra/src/daemon/worker.dart';
 import 'package:indra/src/runner.dart';
-import 'package:meta/meta.dart';
 
 class WorkerPool {
-  Set<Worker> _workers;
+  late Set<Worker> _workers;
   List<Job> _queue = [];
   Map<String, Job> _jobs = {};
   Map<String, int> _latestJobNumber = {};
 
-  WorkerPool(int numberOfWorkers, {@required String workingDir}) {
+  WorkerPool(int numberOfWorkers, {required String workingDir}) {
     _workers = Set();
     for (var i = 0; i < numberOfWorkers; i++) {
       _workers.add(Worker(workingDir: workingDir, finished: _workerFinished));
@@ -47,13 +46,13 @@ class WorkerPool {
   int _nextNumber(String jobName) {
     _latestJobNumber.putIfAbsent(jobName, () => 1);
     var number = _latestJobNumber[jobName];
-    _latestJobNumber[jobName] = _latestJobNumber[jobName] + 1;
-    return number;
+    _latestJobNumber[jobName] = _latestJobNumber[jobName]! + 1;
+    return number!;
   }
 
-  Job job(String key) => _jobs[key];
+  Job? job(String key) => _jobs[key];
 
-  Job cancel(String key) {
+  Job? cancel(String key) {
     var job = _jobs[key];
     if (job != null) {
       job.cancel();
