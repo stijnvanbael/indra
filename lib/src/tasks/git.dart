@@ -7,7 +7,6 @@ import 'package:indra/src/output/output.dart';
 class GitRepo {
   late String _uri;
   late String _branch;
-  final RegExp _uriPattern = RegExp(r'.+?([^/]+)\.git');
 
   GitRepo(String uri, {String? branch}) {
     _uri = uri;
