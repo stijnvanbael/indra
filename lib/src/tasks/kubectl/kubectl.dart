@@ -2,11 +2,10 @@ import 'package:indra/indra.dart';
 import 'package:indra/src/tasks/kubectl/config.dart';
 
 class KubeCtl {
-  static Future createAndApply(String file) async {
-    var output = await run(
-      ['create', '-f', '"$file"', '-o', 'yaml', '--dry-run=client'],
-    );
-    return await run(['apply', '-f', '-'], stdin: output);
+  static Future apply(String file) async {
+    final output = await run(
+        ['create', '-f', '"$file"', '-o', 'yaml', '--dry-run=client']);
+    return run(['apply', '-f', '-'], stdin: Stream.value(output));
   }
 
   static Config get config => Config();
@@ -14,7 +13,7 @@ class KubeCtl {
   static Future<String> run(
     List<String> args, {
     String? workingDirectory,
-    String? stdin,
+    Stream<String>? stdin,
     bool reportFailure = true,
     bool showOutput = true,
   }) =>
@@ -25,5 +24,6 @@ class KubeCtl {
         stdin: stdin,
         reportFailure: reportFailure,
         showOutput: showOutput,
+        waitUntilFinished: false,
       );
 }

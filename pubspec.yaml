@@ -4,7 +4,7 @@ description: Scriptable integration and automation engine
 homepage: https://github.com/stijnvanbael/indra
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   shelf: ^1.4.1

@@ -6,17 +6,23 @@ class Yaml {
   static Future replace(
     String filename, {
     int documentIndex = 0,
-    required String key,
+    required List<dynamic> key,
     required String value,
   }) async {
-    var file = File(filename);
-    var contents = await file.readAsString();
-    var documents = contents
-        .split('---')
+    final file = File(filename);
+    final contents = await file.readAsString();
+    final documents = contents
+        .split('---\n')
         .where((element) => element.trim().isNotEmpty)
         .toList();
     final editor = YamlEditor(documents[documentIndex]);
-    editor.update([key], value);
-    await file.writeAsString(editor.toString());
+    editor.update(key, value);
+    if (documents.length > 1) {
+      documents[documentIndex] = editor.toString();
+      final output = '---\n' + documents.join('---\n');
+      await file.writeAsString(output);
+    } else {
+      await file.writeAsString(editor.toString());
+    }
   }
 }

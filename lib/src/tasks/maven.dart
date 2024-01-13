@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:indra/indra.dart';
 
-String clean = 'clean';
-String test = 'test';
-String package = 'package';
-String verify = 'verify';
-String install = 'install';
+typedef MavenGoal = String;
 
 class Maven {
   static Future run(List<String> tasks) => Shell.execute('mvn', tasks);
+
+  static MavenGoal clean = 'clean';
+  static MavenGoal test = 'test';
+  static MavenGoal package = 'package';
+  static MavenGoal verify = 'verify';
+  static MavenGoal install = 'install';
 }

@@ -21,7 +21,7 @@ class Bitbucket {
   Future createPullRequest({
     required String branch,
     required String title,
-    bool closeBranch: false,
+    bool closeBranch = false,
   }) async {
     var url = '$_baseUrl/pullrequests';
     output.showStartStep('POST', [url]);

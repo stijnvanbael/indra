@@ -27,7 +27,7 @@ class Shell {
     List<String> args, {
     String? workingDirectory,
     String? setup,
-    String? stdin,
+    Stream<String>? stdin,
     bool reportFailure = true,
     bool showOutput = true,
     bool waitUntilFinished = true,
@@ -46,7 +46,7 @@ class Shell {
           process, reportFailure, executable, processOutput, completer);
     }
     if (stdin != null) {
-      process.stdin.add(stdin.codeUnits);
+      stdin.map((e) => e.codeUnits).pipe(process.stdin);
     }
     return processOutput.toString();
   }
@@ -121,4 +121,8 @@ class TaskFailed implements Exception {
 
 class Aborted extends TaskFailed {
   Aborted() : super('Aborted');
+}
+
+extension FuturePipe<T> on Future<T> {
+  Future<T> operator |(Future<T> other) => this;
 }

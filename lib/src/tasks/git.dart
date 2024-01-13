@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:indra/indra.dart';
-import 'package:indra/src/output/output.dart';
 
 class GitRepo {
   late String _uri;
@@ -13,34 +12,36 @@ class GitRepo {
     _branch = branch ?? 'master';
   }
 
-  Future clone({String? into}) async {
+  Future clone({String? into, String? branch}) async {
     List<String> args = ['clone'];
-    args.addAll(['-b', _branch]);
+    args.addAll(['-b', branch ?? _branch]);
     args.add(_uri);
     if (into != null) args.add(into);
     await _git(args);
   }
 
-  Future cloneOrPull({String into = '.', bool clean = false}) async {
+  Future cloneOrPull({
+    String into = '.',
+    bool clean = false,
+    String? branch,
+  }) async {
+    branch = branch ?? _branch;
     Context.changeDir(Shell.rootDirectory);
     var directory = Directory('${Shell.workingDirectory}/$into');
     if (clean) {
       await this._clean(directory);
     }
     if (await directory.exists()) {
-      await checkout(into: into);
-      await pull(into: into);
+      await checkout(into: into, branch: branch);
+      await pull(into: into, branch: branch);
     } else {
-      await clone(into: into);
+      await clone(into: into, branch: branch);
     }
     Context.changeDir(into);
   }
 
   Future<bool> pull({String? branch, String into = ''}) async {
-    if (branch == null) {
-      branch = _branch;
-    }
-    var output = await _git(['pull', 'origin', branch],
+    var output = await _git(['pull', 'origin', branch ?? _branch],
         workingDirectory:
             into.startsWith('/') ? into : '${Shell.workingDirectory}/$into');
     return output.startsWith('Updating');
@@ -68,10 +69,10 @@ class GitRepo {
 
   Future<List<String>> get tags async {
     var tags = await _git(['tag']);
-    return tags.split('\n');
+    return tags.split('\n').where((tag) => tag.isNotEmpty).toList();
   }
 
-  Future<String> latestTag() => _git(['describe', '--tags']);
+  Future<String?> latestTag() async => (await tags).lastOrNull;
 
   Future push({
     bool tags = false,
@@ -185,7 +186,7 @@ class GitRepo {
         .toList();
   }
 
-  Future<String> get currentCommitHash async {
+  Future<String> get currentCommit async {
     var hash = await _git(['rev-parse', 'HEAD']);
     return hash.trim().substring(0, 8);
   }

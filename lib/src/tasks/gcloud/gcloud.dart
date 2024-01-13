@@ -19,6 +19,6 @@ class GCloud {
 
   Builds get builds => Builds(this);
 
-  Future<String> run(List<String> params, {bool showOutput: true}) =>
+  Future<String> run(List<String> params, {bool showOutput = true}) =>
       Shell.execute('gcloud', params, showOutput: showOutput);
 }
